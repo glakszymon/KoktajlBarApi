@@ -1,10 +1,15 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
-import Cocktail from '#models/cocktail'
+import Ingredient from '#models/ingredient'
 
 export default class IngredientsController {
   async readAllIngredients() {
-    const cocktails = await Cocktail.all()
-    return cocktails
+    let ingredients = await Ingredient.all()
+    return ingredients
+  }
+
+  async getIngredientById(id: number) {
+    const ingredient = await Ingredient.findOrFail(id)
+    return ingredient
   }
 }

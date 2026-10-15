@@ -10,6 +10,7 @@
 // import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 import IngredientsController from '#controllers/ingredients_controller'
+import console from 'node:console'
 // import { controllers } from '#generated/controllers'
 
 router.get('/', () => {
@@ -17,8 +18,11 @@ router.get('/', () => {
 })
 
 router.get('/ingredients', () => {
+  console.log('tutaj sie cos udało dostać')
   const temp = new IngredientsController()
-  return temp.readAllIngredients()
+  console.log(temp)
+  let r = temp.readAllIngredients()
+  return r
 })
 
 
