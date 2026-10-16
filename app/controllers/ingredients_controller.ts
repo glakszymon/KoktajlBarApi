@@ -1,37 +1,15 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
-import IngredientService from '../service/ingredients_service.js'
-import { type HttpContext } from '@adonisjs/core/http'
-import { createIngredientValidator } from '#validators/ingredient'
+import Ingredient from '#models/ingredient'
 
 export default class IngredientsController {
-  public readAllIngredients() {
-    return IngredientService.getAll()
+  async readAllIngredients() {
+    let ingredients = await Ingredient.all()
+    return ingredients
   }
 
-  async addIngredient({ request, response }: HttpContext) {
-    const validatedData = await request.validateUsing(createIngredientValidator)
-    const newIngredient = await IngredientService.addRecord(validatedData)
-
-    return response.created({
-      message: 'Składnik został pomyślnie dodany do bazy!',
-      data: newIngredient,
-    })
-  }
-
-  async deleteIngredient({ request, response }: HttpContext) {
-    const data = await request.input('id')
-    const idNumber = Number.parseInt(data, 10)
-    const deleteAction = await IngredientService.deleteRecord(idNumber)
-
-    if (deleteAction) {
-      return response.created({
-        messages: 'Składnik pomyślnie usuniety',
-      })
-    }
-
-    return response.created({
-      messages: 'Składnik nie został usuniety',
-    })
+  async getIngredientById(id: number) {
+    const ingredient = await Ingredient.findOrFail(id)
+    return ingredient
   }
 }
