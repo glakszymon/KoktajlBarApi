@@ -18,13 +18,14 @@ router.get('/', () => {
 })
 
 router.get('/ingredients', () => {
-  console.log('tutaj sie cos udało dostać')
   const temp = new IngredientsController()
-  console.log(temp)
-  let r = temp.readAllIngredients()
+  const r = temp.readAllIngredients()
   return r
 })
 
+router.post('/ingredients', [IngredientsController, 'addIngredient'])
+
+router.delete('/ingredients', [IngredientsController, 'deleteIngredient'])
 
 // Podsumowanie struktury API dla tego zadania:
 //
