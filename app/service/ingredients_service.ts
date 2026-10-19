@@ -5,11 +5,11 @@ export default class IngredientService {
     return Ingredient.all()
   }
 
-  static async getById(id: number) {
+  async getById(id: number) {
     return Ingredient.findOrFail(id)
   }
 
-  async addRecord(data: { name: string; description?: string | null; alcohol?: boolean }) {
+  async addRecord(data: { name: string; description?: string; alcohol?: boolean }) {
     const ingredient = await Ingredient.create({
       name: data.name,
       description: data.description ?? null,
@@ -24,5 +24,14 @@ export default class IngredientService {
     await ingredient.delete()
 
     return true
+  }
+
+  async updateRecord(id: number, data: { name?: string; description?: string; alcohol?: boolean }) {
+    const activeIngredient = await Ingredient.findOrFail(id)
+
+    activeIngredient.merge(data)
+    await activeIngredient.save()
+
+    return activeIngredient
   }
 }

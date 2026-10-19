@@ -1,46 +1,30 @@
-// import { middleware } from '#start/kernel'
-
 import router from '@adonisjs/core/services/router'
-import IngredientsController from '#controllers/ingredients_controller'
-import CocktailsController from '#controllers/cocktails_controller'
 
-router.get('/', () => {
+const IngredientsController = () => import('#controllers/ingredients_controller')
+const CocktailsController = () => import('#controllers/cocktails_controller')
+
+router.get('/', async () => {
   return { hello: 'world' }
 })
 
 // INGREDIENTS
-
-router.get('/ingredients', () => {
-  const temp = new IngredientsController()
-  const r = temp.readAllIngredients()
-  return r
-})
-
-router.post('/ingredients', async (ctx) => {
-  const controller = new IngredientsController()
-  return controller.addIngredient(ctx)
-})
-
-router.delete('/ingredients', async (ctx) => {
-  const controller = new IngredientsController()
-  return controller.deleteIngredient(ctx)
-})
+router
+  .group(() => {
+    router.get('/', [IngredientsController, 'readAllIngredients'])
+    router.get('/:id', [IngredientsController, 'getIngredientById'])
+    router.post('/', [IngredientsController, 'addIngredient'])
+    router.delete('/:id', [IngredientsController, 'deleteIngredient'])
+    router.put('/:id', [IngredientsController, 'updateIngredient'])
+  })
+  .prefix('/ingredients')
 
 // COCKTAILS
-
-router.get('/cocktails', () => {
-  const temp = new CocktailsController()
-  return temp.readAllCocktails()
-})
-
-router.post('/cocktails', async (ctx) => {
-  const controller = new CocktailsController()
-  return controller.addCocktail(ctx)
-})
-
-router.delete('/cocktails', async (ctx) => {
-  const controller = new CocktailsController()
-  return controller.deleteCocktail(ctx)
-})
-
-router.get('/cocktails')
+router
+  .group(() => {
+    router.get('/', [CocktailsController, 'readAllCocktails'])
+    router.get('/:id', [CocktailsController, 'getCocktailsById'])
+    router.post('/', [CocktailsController, 'addCocktail'])
+    router.delete('/:id', [CocktailsController, 'deleteCocktail'])
+    router.put('/:id', [CocktailsController, 'updateCocktail'])
+  })
+  .prefix('/cocktails')

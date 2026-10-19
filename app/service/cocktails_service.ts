@@ -1,11 +1,11 @@
 import Cocktail from '#models/cocktail'
 
 export default class CocktailsService {
-  static async getAll() {
+  async getAll() {
     return Cocktail.all()
   }
 
-  static async getById(id: number) {
+  async getById(id: number) {
     return Cocktail.findOrFail(id)
   }
 
@@ -23,5 +23,14 @@ export default class CocktailsService {
     await cocktail.delete()
 
     return true
+  }
+
+  async updateRecord(id: number, data: { name?: string; category?: string; recipe?: string }) {
+    const activeCocktail = await Cocktail.findOrFail(id)
+
+    activeCocktail.merge(data)
+
+    await activeCocktail.save()
+    return activeCocktail
   }
 }

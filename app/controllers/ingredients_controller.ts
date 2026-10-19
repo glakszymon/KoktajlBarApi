@@ -1,19 +1,22 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
-import Ingredient from '#models/ingredient'
 import IngredientService from '../service/ingredients_service.js'
-import { HttpContext } from '@adonisjs/core/http'
+import { type HttpContext } from '@adonisjs/core/http'
 import { addIngredientValidator, ingredientIdValidator } from '#validators/ingredient'
+import { updateCocktailValidator } from '#validators/cocktail'
 
 export default class IngredientsController {
-  async readAllIngredients() {
-    const ingredients = await Ingredient.all()
-    return ingredients
+  async readAllIngredients({ response }: HttpContext) {
+    const service = new IngredientService()
+    const ingredients = await service.getAll()
+    return response.ok(ingredients)
   }
 
-  async getIngredientById(id: number) {
-    const ingredient = await Ingredient.findOrFail(id)
-    return ingredient
+  async getIngredientById({ params, response }: HttpContext) {
+    const data = await ingredientIdValidator.validate(params)
+    const service = new IngredientService()
+    const ingredient = await service.getById(data.id)
+    return response.ok(ingredient)
   }
 
   async addIngredient({ request, response }: HttpContext) {
@@ -30,11 +33,21 @@ export default class IngredientsController {
     return response.created(ingredient)
   }
 
-  async deleteIngredient({ request, response }: HttpContext) {
-    const data = await request.validateUsing(ingredientIdValidator)
+  async deleteIngredient({ params, response }: HttpContext) {
+    const data = await ingredientIdValidator.validate(params)
 
     const service = new IngredientService()
     await service.deleteRecord(data.id)
+
+    return response.created(data)
+  }
+
+  async updateIngredient({ params, request, response }: HttpContext) {
+    const identification = await ingredientIdValidator.validate(params)
+    const data = await request.validateUsing(updateCocktailValidator)
+
+    const service = new IngredientService()
+    service.updateRecord(identification.id, data)
 
     return response.created(data)
   }
