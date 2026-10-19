@@ -1,17 +1,8 @@
-/*
-|--------------------------------------------------------------------------
-| Routes file
-|--------------------------------------------------------------------------
-|
-| The routes file is used for defining the HTTP routes.
-|
-*/
-
 // import { middleware } from '#start/kernel'
+
 import router from '@adonisjs/core/services/router'
 import IngredientsController from '#controllers/ingredients_controller'
-import console from 'node:console'
-// import { controllers } from '#generated/controllers'
+import CocktailsController from '#controllers/cocktails_controller'
 
 router.get('/', () => {
   return { hello: 'world' }
@@ -23,54 +14,27 @@ router.get('/ingredients', () => {
   return r
 })
 
-router.post('/ingredients', [IngredientsController, 'addIngredient'])
+router.post('/ingredients', async (ctx) => {
+  const controller = new IngredientsController()
+  return controller.addIngredient(ctx)
+})
 
-router.delete('/ingredients', [IngredientsController, 'deleteIngredient'])
+router.delete('/ingredients', async (ctx) => {
+  const controller = new IngredientsController()
+  return controller.deleteIngredient(ctx)
+})
 
-// Podsumowanie struktury API dla tego zadania:
-//
-//     Zarządzanie składnikami (/ingredients):
-//
-//         GET /ingredients - lista składników
-//
-//         POST /ingredients - dodanie nowego składnika
-//
-//         GET /ingredients/{id} - szczegóły składnika
-//
-//         PUT /ingredients/{id} - edycja składnika
-//
-//         DELETE /ingredients/{id} - usunięcie składnika
-//
-//     Zarządzanie koktajlami (/cocktails):
-//
-//         GET /cocktails - lista koktajli
-//
-//         POST /cocktails - utworzenie koktajlu (przypisanie istniejących składników wraz z ich ilościami)
-//
-//         GET /cocktails/{id} - szczegóły koktajlu (wraz ze składnikami)
-//
-//         PUT /cocktails/{id} - edycja koktajlu i jego składników
-//
-//         DELETE /cocktails/{id} - usunięcie koktajlu
+router.get('/cocktails', () => {
+  const temp = new CocktailsController()
+  return temp.readAllCocktails()
+})
 
-//
-// router
-//   .group(() => {
-//     router
-//       .group(() => {
-//         router.post('signup', [controllers.NewAccount, 'store'])
-//         router.post('login', [controllers.AccessTokens, 'store'])
-//       })
-//       .prefix('auth')
-//       .as('auth')
-//
-//     router
-//       .group(() => {
-//         router.get('profile', [controllers.Profile, 'show'])
-//         router.post('logout', [controllers.AccessTokens, 'destroy'])
-//       })
-//       .prefix('account')
-//       .as('profile')
-//       .use(middleware.auth())
-//   })
-//   .prefix('/api/v1')
+router.post('/cocktails', async (ctx) => {
+  const controller = new CocktailsController()
+  return controller.addCocktail(ctx)
+})
+
+router.delete('/cocktails', async (ctx) => {
+  const controller = new CocktailsController()
+  return controller.deleteCocktail(ctx)
+})

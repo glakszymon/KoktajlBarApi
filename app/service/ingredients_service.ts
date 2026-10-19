@@ -1,7 +1,7 @@
 import Ingredient from '#models/ingredient'
 
 export default class IngredientService {
-  static async getAll() {
+  async getAll() {
     return Ingredient.all()
   }
 
@@ -9,22 +9,20 @@ export default class IngredientService {
     return Ingredient.findOrFail(id)
   }
 
-  static async addRecord(data: { name: string; description?: string; alcohol?: string }) {
+  async addRecord(data: { name: string; description?: string | null; alcohol?: boolean }) {
     const ingredient = await Ingredient.create({
       name: data.name,
-      description: data.description,
-      alcohol: data.alcohol ?? false,
+      description: data.description ?? null,
+      alcohol: data.alcohol ?? true,
     })
 
     return ingredient
   }
 
-  static async deleteRecord(id: number) {
+  async deleteRecord(id: number) {
     const ingredient = await Ingredient.findOrFail(id)
     await ingredient.delete()
 
     return true
   }
-
-
 }
