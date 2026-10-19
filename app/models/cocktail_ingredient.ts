@@ -13,7 +13,7 @@ export default class CocktailIngredient extends CocktailIngredientSchema {
   declare unit: string | null
 
   @column({ columnName: 'ingredient_id' })
-  declare IngredientId: number | null
+  declare ingredientId: number | null
 
   @column({ columnName: 'cocktail_id' })
   declare cocktailId: number

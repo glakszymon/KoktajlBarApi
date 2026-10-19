@@ -3,8 +3,6 @@ import { column, manyToMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { ManyToMany } from '@adonisjs/lucid/types/relations'
 import Ingredient from '#models/ingredient'
-// import CocktailIngredient from '#models/cocktail_ingredient'
-// import { BelongsTo } from '@adonisjs/lucid/types/relations'
 
 export default class Cocktail extends CocktailSchema {
   @column({ isPrimary: true, columnName: 'id' })
@@ -30,6 +28,7 @@ export default class Cocktail extends CocktailSchema {
     pivotForeignKey: 'cocktail_id',
     pivotRelatedForeignKey: 'ingredient_id',
     pivotColumns: ['amount', 'unit'],
+    pivotTimestamps: true,
   })
   declare ingredients: ManyToMany<typeof Ingredient>
 }

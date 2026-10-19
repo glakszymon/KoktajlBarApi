@@ -1,6 +1,6 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
-import IngredientService from '../service/ingredients_service.js'
+import IngredientService from '../services/ingredients_service.js'
 import { type HttpContext } from '@adonisjs/core/http'
 import {
   addIngredientValidator,
