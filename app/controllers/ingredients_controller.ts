@@ -2,7 +2,11 @@
 
 import IngredientService from '../service/ingredients_service.js'
 import { type HttpContext } from '@adonisjs/core/http'
-import { addIngredientValidator, ingredientIdValidator } from '#validators/ingredient'
+import {
+  addIngredientValidator,
+  ingredientIdValidator,
+  updateIngredientValidator,
+} from '#validators/ingredient'
 import { updateCocktailValidator } from '#validators/cocktail'
 
 export default class IngredientsController {
@@ -44,7 +48,7 @@ export default class IngredientsController {
 
   async updateIngredient({ params, request, response }: HttpContext) {
     const identification = await ingredientIdValidator.validate(params)
-    const data = await request.validateUsing(updateCocktailValidator)
+    const data = await request.validateUsing(updateIngredientValidator)
 
     const service = new IngredientService()
     service.updateRecord(identification.id, data)
