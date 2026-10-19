@@ -8,6 +8,8 @@ router.get('/', () => {
   return { hello: 'world' }
 })
 
+// INGREDIENTS
+
 router.get('/ingredients', () => {
   const temp = new IngredientsController()
   const r = temp.readAllIngredients()
@@ -24,6 +26,8 @@ router.delete('/ingredients', async (ctx) => {
   return controller.deleteIngredient(ctx)
 })
 
+// COCKTAILS
+
 router.get('/cocktails', () => {
   const temp = new CocktailsController()
   return temp.readAllCocktails()
@@ -38,3 +42,5 @@ router.delete('/cocktails', async (ctx) => {
   const controller = new CocktailsController()
   return controller.deleteCocktail(ctx)
 })
+
+router.get('/cocktails')
