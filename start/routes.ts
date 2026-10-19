@@ -14,7 +14,7 @@ router
     router.get('/:id', [IngredientsController, 'getIngredientById'])
     router.post('/', [IngredientsController, 'addIngredient'])
     router.delete('/:id', [IngredientsController, 'deleteIngredient'])
-    router.put('/:id', [IngredientsController, 'updateIngredient'])
+    router.patch('/:id', [IngredientsController, 'updateIngredient'])
   })
   .prefix('/ingredients')
 
@@ -25,6 +25,6 @@ router
     router.get('/:id', [CocktailsController, 'getCocktailsById'])
     router.post('/', [CocktailsController, 'addCocktail'])
     router.delete('/:id', [CocktailsController, 'deleteCocktail'])
-    router.put('/:id', [CocktailsController, 'updateCocktail'])
+    router.patch('/:id', [CocktailsController, 'updateCocktail'])
   })
   .prefix('/cocktails')

@@ -7,7 +7,6 @@ import {
   ingredientIdValidator,
   updateIngredientValidator,
 } from '#validators/ingredient'
-import { updateCocktailValidator } from '#validators/cocktail'
 
 export default class IngredientsController {
   async readAllIngredients({ response }: HttpContext) {
