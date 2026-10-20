@@ -58,7 +58,7 @@ export default class IngredientsController {
     const service = new IngredientService()
     await service.deleteRecord(data.id)
 
-    return response.created(data)
+    return response.ok(data)
   }
 
   async updateIngredient({ params, request, response }: HttpContext) {
@@ -68,6 +68,6 @@ export default class IngredientsController {
     const service = new IngredientService()
     await service.updateRecord(identification.id, data)
 
-    return response.created(data)
+    return response.ok(data)
   }
 }

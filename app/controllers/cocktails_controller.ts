@@ -60,7 +60,7 @@ export default class CocktailsController {
 
     await service.deleteRecord(data.id)
 
-    return response.created(data)
+    return response.ok(data)
   }
 
   async updateCocktail({ params, request, response }: HttpContext) {
