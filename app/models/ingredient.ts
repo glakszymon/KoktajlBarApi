@@ -1,5 +1,5 @@
 import { IngredientSchema } from '#database/schema'
-import { column, manyToMany } from '@adonisjs/lucid/orm'
+import { column, computed, manyToMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import Cocktail from '#models/cocktail'
 import type { ManyToMany } from '@adonisjs/lucid/types/relations'
@@ -33,4 +33,14 @@ export default class Ingredient extends IngredientSchema {
     pivotColumns: ['amount', 'unit'],
   })
   declare cocktails: ManyToMany<typeof Cocktail>
+
+  @computed()
+  get amount(): number | undefined {
+    return this.$extras.pivot_amount
+  }
+
+  @computed()
+  get unit(): string | undefined {
+    return this.$extras.pivot_unit
+  }
 }

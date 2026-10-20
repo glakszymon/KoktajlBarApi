@@ -6,17 +6,15 @@ export default class CocktailsService {
     const page = filters.page || 1
     const limit = filters.limit || 10
 
-    const query = Cocktail.query().preload('ingredients')
+    const query = await Cocktail.query().preload('ingredients').paginate(page, limit)
 
-    const action = await query.paginate(page, limit)
-
-    return action
+    return query
   }
 
   async getById(id: number) {
-    const cocktail = await Cocktail.query().where('id', id).preload('ingredients').firstOrFail()
+    const query = await Cocktail.query().where('id', id).preload('ingredients').firstOrFail()
 
-    return cocktail
+    return query
   }
 
   public async addRecord(data: {

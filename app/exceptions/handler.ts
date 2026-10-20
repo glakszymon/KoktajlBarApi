@@ -17,8 +17,8 @@ export default class HttpExceptionHandler extends ExceptionHandler {
   }
 
   /**
-   * The method is used to report error to the logging service or
-   * the a third party error monitoring service.
+   * The method is used to report error to the logging services or
+   * the a third party error monitoring services.
    *
    * @note You should not attempt to send a response from this method.
    */

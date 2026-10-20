@@ -4,6 +4,7 @@ const ingredientSchema = {
   name: vine.string().trim().minLength(2).maxLength(100),
   description: vine.string().trim().maxLength(500).optional(),
   alcohol: vine.boolean().optional(),
+  photoUrl: vine.string().url().optional().nullable(),
 }
 
 export const addIngredientValidator = vine.compile(
@@ -23,5 +24,6 @@ export const updateIngredientValidator = vine.compile(
     name: vine.string().trim().minLength(2).maxLength(100).optional(),
     description: vine.string().trim().maxLength(500).optional(),
     alcohol: vine.boolean().optional(),
+    photoUrl: vine.string().url().optional().nullable(),
   })
 )

@@ -38,6 +38,7 @@ export default class IngredientsController {
       name: data.name,
       description: data.description,
       alcohol: data.alcohol,
+      photoUrl: data.photoUrl,
     })
 
     return response.created(ingredient)
@@ -57,7 +58,7 @@ export default class IngredientsController {
     const data = await request.validateUsing(updateIngredientValidator)
 
     const service = new IngredientService()
-    service.updateRecord(identification.id, data)
+    await service.updateRecord(identification.id, data)
 
     return response.created(data)
   }

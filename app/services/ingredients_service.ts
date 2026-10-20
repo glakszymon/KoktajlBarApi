@@ -14,11 +14,17 @@ export default class IngredientService {
     return Ingredient.findOrFail(id)
   }
 
-  async addRecord(data: { name: string; description?: string; alcohol?: boolean }) {
+  async addRecord(data: {
+    name: string
+    description?: string
+    alcohol?: boolean
+    photoUrl?: string | null
+  }) {
     const ingredient = await Ingredient.create({
       name: data.name,
       description: data.description ?? null,
       alcohol: data.alcohol ?? true,
+      photoUrl: data.photoUrl ?? null,
     })
 
     return ingredient
@@ -31,7 +37,10 @@ export default class IngredientService {
     return true
   }
 
-  async updateRecord(id: number, data: { name?: string; description?: string; alcohol?: boolean }) {
+  async updateRecord(
+    id: number,
+    data: { name?: string; description?: string; alcohol?: boolean; photoUrl?: string | null }
+  ) {
     const activeIngredient = await Ingredient.findOrFail(id)
 
     activeIngredient.merge(data)
