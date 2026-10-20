@@ -10,9 +10,15 @@ import {
 } from '#validators/cocktail'
 
 export default class CocktailsController {
-  async readAllCocktails({ response }: HttpContext) {
+  async readAllCocktails({ request, response }: HttpContext) {
+    const { page, limit } = request.qs()
+
     const service = new CocktailsService()
-    const cocktails = await service.getAll()
+
+    const cocktails = await service.getAll({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    })
 
     return response.ok(cocktails)
   }

@@ -9,9 +9,16 @@ import {
 } from '#validators/ingredient'
 
 export default class IngredientsController {
-  async readAllIngredients({ response }: HttpContext) {
+  async readAllIngredients({ request, response }: HttpContext) {
+    const { page, limit } = request.qs()
+
     const service = new IngredientService()
-    const ingredients = await service.getAll()
+
+    const ingredients = await service.getAll({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    })
+
     return response.ok(ingredients)
   }
 

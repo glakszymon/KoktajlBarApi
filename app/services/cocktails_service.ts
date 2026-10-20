@@ -2,10 +2,15 @@ import Cocktail from '#models/cocktail'
 import db from '@adonisjs/lucid/services/db'
 
 export default class CocktailsService {
-  async getAll() {
-    const cocktails = await Cocktail.query().preload('ingredients')
+  async getAll(filters: { page?: number; limit?: number }) {
+    const page = filters.page || 1
+    const limit = filters.limit || 10
 
-    return cocktails
+    const query = Cocktail.query().preload('ingredients')
+
+    const action = await query.paginate(page, limit)
+
+    return action
   }
 
   async getById(id: number) {

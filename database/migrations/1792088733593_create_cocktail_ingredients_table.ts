@@ -7,7 +7,13 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary()
       table.integer('ingredient_id').unsigned().references('ingredients.id')
-      table.integer('cocktail_id').unsigned().references('cocktails.id').notNullable()
+
+      table
+        .integer('cocktail_id')
+        .unsigned()
+        .references('cocktails.id')
+        .notNullable()
+        .onDelete('CASCADE')
 
       table.integer('amount')
       table.string('unit', 100)

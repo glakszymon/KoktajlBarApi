@@ -1,8 +1,13 @@
 import Ingredient from '#models/ingredient'
 
 export default class IngredientService {
-  async getAll() {
-    return Ingredient.all()
+  async getAll(filters: { page?: number; limit?: number }) {
+    const page = filters.page || 1
+    const limit = filters.limit || 10
+
+    const query = await Ingredient.query().paginate(page, limit)
+
+    return query
   }
 
   async getById(id: number) {
