@@ -2,13 +2,23 @@ import Cocktail from '#models/cocktail'
 import db from '@adonisjs/lucid/services/db'
 
 export default class CocktailsService {
-  async getAll(filters: { page?: number; limit?: number }) {
+  async getAll(filters: { page?: number; limit?: number; category?: string }) {
     const page = filters.page || 1
     const limit = filters.limit || 10
 
-    const query = await Cocktail.query().preload('ingredients').paginate(page, limit)
+    const query = Cocktail.query()
 
-    return query
+    if (filters.category) {
+      query.where('category', filters.category)
+    }
+
+    query.preload('ingredients', (ingredientQuery) => {
+      ingredientQuery.pivotColumns(['amount', 'unit'])
+    })
+
+    const result = await query.paginate(page, limit)
+
+    return result
   }
 
   async getById(id: number) {
