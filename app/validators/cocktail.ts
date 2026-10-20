@@ -1,14 +1,20 @@
 import vine from '@vinejs/vine'
 
-const cocktailSchema = {
-  name: vine.string().trim().minLength(2).maxLength(30),
-  category: vine.string().trim().minLength(3).maxLength(30).optional(),
-  recipe: vine.string().optional(),
-}
-
 export const addCocktailValidator = vine.compile(
   vine.object({
-    ...cocktailSchema,
+    name: vine.string().trim().minLength(2).maxLength(30),
+    category: vine.string().trim().minLength(3).maxLength(30).optional(),
+    recipe: vine.string().optional(),
+
+    ingredients: vine
+      .array(
+        vine.object({
+          ingredient_id: vine.number().positive().exists({ table: 'ingredients', column: 'id' }),
+          amount: vine.number().positive().optional(),
+          unit: vine.string().trim().minLength(1).optional(),
+        })
+      )
+      .optional(),
   })
 )
 

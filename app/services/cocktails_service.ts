@@ -3,11 +3,15 @@ import db from '@adonisjs/lucid/services/db'
 
 export default class CocktailsService {
   async getAll() {
-    return Cocktail.all()
+    const cocktails = await Cocktail.query().preload('ingredients')
+
+    return cocktails
   }
 
   async getById(id: number) {
-    return Cocktail.findOrFail(id)
+    const cocktail = await Cocktail.query().where('id', id).preload('ingredients').firstOrFail()
+
+    return cocktail
   }
 
   public async addRecord(data: {
