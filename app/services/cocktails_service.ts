@@ -65,12 +65,48 @@ export default class CocktailsService {
     return true
   }
 
-  async updateRecord(id: number, data: { name?: string; category?: string; recipe?: string }) {
-    const activeCocktail = await Cocktail.findOrFail(id)
+  async updateRecord(
+    id: number,
+    data: {
+      name?: string
+      category?: string
+      recipe?: string
+      ingredients?: Array<{
+        ingredient_id: number
+        amount?: number
+        unit?: string
+      }>
+    }
+  ) {
+    return await db.transaction(async (trx) => {
+      const cocktail = await Cocktail.findOrFail(id, { client: trx })
 
-    activeCocktail.merge(data)
+      cocktail.merge({
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.category !== undefined && { category: data.category }),
+        ...(data.recipe !== undefined && { recipe: data.recipe }),
+      })
 
-    await activeCocktail.save()
-    return activeCocktail
+      await cocktail.save()
+
+      const hasIngredients = data.ingredients !== undefined
+
+      if (hasIngredients) {
+        const pivotDataMap: Record<number, { amount?: number; unit?: string }> = {}
+
+        for (const currentIngredient of data.ingredients!) {
+          pivotDataMap[currentIngredient.ingredient_id] = {
+            amount: currentIngredient.amount,
+            unit: currentIngredient.unit,
+          }
+        }
+
+        await cocktail.related('ingredients').sync(pivotDataMap)
+      }
+
+      await cocktail.load('ingredients')
+
+      return cocktail
+    })
   }
 }

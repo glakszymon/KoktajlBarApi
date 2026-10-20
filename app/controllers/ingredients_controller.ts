@@ -7,16 +7,24 @@ import {
   ingredientIdValidator,
   updateIngredientValidator,
 } from '#validators/ingredient'
+import { paginationValidator } from '#validators/pagination'
 
 export default class IngredientsController {
   async readAllIngredients({ request, response }: HttpContext) {
-    const { page, limit } = request.qs()
+    const qs = request.qs()
+
+    const rawData = {
+      page: qs.page !== undefined ? Number(qs.page) : undefined,
+      limit: qs.limit !== undefined ? Number(qs.limit) : undefined,
+    }
+
+    const validatedData = await paginationValidator.validate(rawData)
 
     const service = new IngredientService()
 
     const ingredients = await service.getAll({
-      page: page ? Number(page) : undefined,
-      limit: limit ? Number(limit) : undefined,
+      page: validatedData.page,
+      limit: validatedData.limit,
     })
 
     return response.ok(ingredients)

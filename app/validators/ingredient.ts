@@ -15,7 +15,7 @@ export const addIngredientValidator = vine.compile(
 
 export const ingredientIdValidator = vine.compile(
   vine.object({
-    id: vine.number().positive(),
+    id: vine.number().positive().withoutDecimals(),
   })
 )
 

@@ -8,16 +8,24 @@ import {
   cocktailIdValidator,
   updateCocktailValidator,
 } from '#validators/cocktail'
+import { paginationValidator } from '#validators/pagination'
 
 export default class CocktailsController {
   async readAllCocktails({ request, response }: HttpContext) {
-    const { page, limit } = request.qs()
+    const qs = request.qs()
+
+    const rawData = {
+      page: qs.page !== undefined ? Number(qs.page) : undefined,
+      limit: qs.limit !== undefined ? Number(qs.limit) : undefined,
+    }
+
+    const validatedData = await paginationValidator.validate(rawData)
 
     const service = new CocktailsService()
 
     const cocktails = await service.getAll({
-      page: page ? Number(page) : undefined,
-      limit: limit ? Number(limit) : undefined,
+      page: validatedData.page,
+      limit: validatedData.limit,
     })
 
     return response.ok(cocktails)
@@ -56,12 +64,12 @@ export default class CocktailsController {
   }
 
   async updateCocktail({ params, request, response }: HttpContext) {
-    const identification = await cocktailIdValidator.validate(params)
+    const { id } = await cocktailIdValidator.validate(params)
     const data = await request.validateUsing(updateCocktailValidator)
 
     const service = new CocktailsService()
-    await service.updateRecord(identification.id, data)
+    const updatedCocktail = await service.updateRecord(id, data)
 
-    return response.created(data)
+    return response.ok(updatedCocktail)
   }
 }
