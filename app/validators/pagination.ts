@@ -6,5 +6,7 @@ export const paginationValidator = vine.compile(
     limit: vine.number().withoutDecimals().positive().max(100).optional(),
     category: vine.string().optional(),
     alcohol: vine.boolean().optional(),
+    sortBy: vine.enum(['id', 'name', 'category', 'created', 'updated']),
+    sortOrder: vine.enum(['asc', 'desc']).optional(),
   })
 )

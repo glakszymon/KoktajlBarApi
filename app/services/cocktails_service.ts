@@ -2,7 +2,14 @@ import Cocktail from '#models/cocktail'
 import db from '@adonisjs/lucid/services/db'
 
 export default class CocktailsService {
-  async getAll(filters: { page?: number; limit?: number; category?: string; alcohol?: boolean }) {
+  async getAll(filters: {
+    page?: number
+    limit?: number
+    category?: string
+    alcohol?: boolean
+    sortBy?: string
+    sortOrder?: 'asc' | 'desc'
+  }) {
     const page = filters.page || 1
     const limit = filters.limit || 10
 
@@ -11,16 +18,20 @@ export default class CocktailsService {
     if (filters.category !== undefined) {
       query.where('category', filters.category)
     }
-
     if (filters.alcohol !== undefined) {
       query.whereHas('ingredients', (ingredientQuery) => {
         ingredientQuery.where('alcohol', filters.alcohol!)
       })
     }
-
     query.preload('ingredients', (ingredientQuery) => {
       ingredientQuery.pivotColumns(['amount', 'unit'])
     })
+
+    const allowedSortColumns = ['id', 'name', 'category', 'created', 'updated']
+    const sortBy = allowedSortColumns.includes(filters.sortBy ?? '') ? filters.sortBy! : 'id'
+    const order = filters.sortOrder === 'desc' ? 'desc' : 'asc'
+
+    query.orderBy(sortBy, order)
 
     const result = await query.paginate(page, limit)
 
