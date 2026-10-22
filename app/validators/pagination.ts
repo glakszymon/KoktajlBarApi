@@ -5,5 +5,6 @@ export const paginationValidator = vine.compile(
     page: vine.number().withoutDecimals().positive().optional(),
     limit: vine.number().withoutDecimals().positive().max(100).optional(),
     category: vine.string().optional(),
+    alcohol: vine.boolean().optional(),
   })
 )

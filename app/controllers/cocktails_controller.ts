@@ -18,6 +18,7 @@ export default class CocktailsController {
       page: qs.page !== undefined ? Number(qs.page) : undefined,
       limit: qs.limit !== undefined ? Number(qs.limit) : undefined,
       category: qs.category === undefined ? undefined : qs.category,
+      alcohol: qs.alcohol === undefined ? undefined : qs.alcohol,
     }
 
     const validatedData = await paginationValidator.validate(rawData)
@@ -28,6 +29,7 @@ export default class CocktailsController {
       page: validatedData.page,
       limit: validatedData.limit,
       category: validatedData.category,
+      alcohol: validatedData.alcohol,
     })
 
     return response.ok(cocktails)

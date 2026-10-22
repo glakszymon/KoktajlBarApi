@@ -16,6 +16,7 @@ export default class IngredientsController {
     const rawData = {
       page: qs.page !== undefined ? Number(qs.page) : undefined,
       limit: qs.limit !== undefined ? Number(qs.limit) : undefined,
+      alcohol: qs.alcohol === undefined ? undefined : qs.alcohol,
     }
 
     const validatedData = await paginationValidator.validate(rawData)
@@ -25,6 +26,7 @@ export default class IngredientsController {
     const ingredients = await service.getAll({
       page: validatedData.page,
       limit: validatedData.limit,
+      alcohol: validatedData.alcohol,
     })
 
     return response.ok(ingredients)

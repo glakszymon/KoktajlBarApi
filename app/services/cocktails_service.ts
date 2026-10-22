@@ -2,14 +2,20 @@ import Cocktail from '#models/cocktail'
 import db from '@adonisjs/lucid/services/db'
 
 export default class CocktailsService {
-  async getAll(filters: { page?: number; limit?: number; category?: string }) {
+  async getAll(filters: { page?: number; limit?: number; category?: string; alcohol?: boolean }) {
     const page = filters.page || 1
     const limit = filters.limit || 10
 
     const query = Cocktail.query()
 
-    if (filters.category) {
+    if (filters.category !== undefined) {
       query.where('category', filters.category)
+    }
+
+    if (filters.alcohol !== undefined) {
+      query.whereHas('ingredients', (ingredientQuery) => {
+        ingredientQuery.where('alcohol', filters.alcohol!)
+      })
     }
 
     query.preload('ingredients', (ingredientQuery) => {

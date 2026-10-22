@@ -1,13 +1,17 @@
 import Ingredient from '#models/ingredient'
 
 export default class IngredientService {
-  async getAll(filters: { page?: number; limit?: number }) {
+  async getAll(filters: { page?: number; limit?: number; alcohol?: boolean }) {
     const page = filters.page || 1
     const limit = filters.limit || 10
 
-    const query = await Ingredient.query().paginate(page, limit)
+    const query = Ingredient.query()
 
-    return query
+    if (filters.alcohol !== undefined) {
+      query.where('alcohol', filters.alcohol)
+    }
+
+    return await query.paginate(page, limit)
   }
 
   async getById(id: number) {
