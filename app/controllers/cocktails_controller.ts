@@ -8,7 +8,7 @@ import {
   cocktailIdValidator,
   updateCocktailValidator,
 } from '#validators/cocktail'
-import { paginationValidator } from '#validators/pagination'
+import { paginationCocktailValidator } from '#validators/pagination'
 
 export default class CocktailsController {
   /**
@@ -36,7 +36,7 @@ export default class CocktailsController {
       sortOrder: qs.sortOrder === undefined ? undefined : qs.sortOrder,
     }
 
-    const validatedData = await paginationValidator.validate(rawData)
+    const validatedData = await paginationCocktailValidator.validate(rawData)
 
     const service = new CocktailsService()
 

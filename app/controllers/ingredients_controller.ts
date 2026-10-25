@@ -7,7 +7,7 @@ import {
   ingredientIdValidator,
   updateIngredientValidator,
 } from '#validators/ingredient'
-import { paginationValidator } from '#validators/pagination'
+import { paginationIngredientValidator } from '#validators/pagination'
 
 export default class IngredientsController {
   /**
@@ -32,7 +32,7 @@ export default class IngredientsController {
       sortOrder: qs.sortOrder === undefined ? undefined : qs.sortOrder,
     }
 
-    const validatedData = await paginationValidator.validate(rawData)
+    const validatedData = await paginationIngredientValidator.validate(rawData)
 
     const service = new IngredientService()
 
