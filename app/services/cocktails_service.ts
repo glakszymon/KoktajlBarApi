@@ -35,6 +35,15 @@ export default class CocktailsService {
 
     const result = await query.paginate(page, limit)
 
+    result.baseUrl('/cocktails')
+    result.queryString({
+      limit,
+      sortBy,
+      sortOrder: order,
+      ...(filters.category !== undefined && { category: filters.category }),
+      ...(filters.alcohol !== undefined && { alcohol: filters.alcohol }),
+    })
+
     return result
   }
 

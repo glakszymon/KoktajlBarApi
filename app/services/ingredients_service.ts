@@ -23,7 +23,17 @@ export default class IngredientService {
 
     query.orderBy(sortBy, order)
 
-    return await query.paginate(page, limit)
+    const result = await query.paginate(page, limit)
+
+    result.baseUrl('/ingredients')
+    result.queryString({
+      limit,
+      sortBy,
+      sortOrder: order,
+      ...(filters.alcohol !== undefined && { alcohol: filters.alcohol }),
+    })
+
+    return result
   }
 
   async getById(id: number) {

@@ -325,6 +325,27 @@ export function normalizeOpenApi<T extends OpenApiDocument>(document: T): T {
         }
       }
       const responses = operation.responses ?? {}
+      if (path === '/ingredients/{id}' && method === 'delete') {
+        responses['409'] = {
+          description: 'Składnik jest używany w koktajlu i nie może zostać usunięty.',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['code', 'message'],
+                properties: {
+                  code: { type: 'string' },
+                  message: { type: 'string' },
+                },
+              },
+              example: {
+                code: 'E_RESOURCE_IN_USE',
+                message: 'Nie można usunąć zasobu, ponieważ jest używany przez inne rekordy.',
+              },
+            },
+          },
+        }
+      }
       if (path.startsWith('/cocktails') || path.startsWith('/ingredients')) {
         responses['422'] = {
           description: 'Błąd walidacji danych (Accept: application/json).',

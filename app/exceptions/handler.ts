@@ -13,6 +13,16 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * response to the client
    */
   async handle(error: unknown, ctx: HttpContext) {
+    const isReferencedRecord =
+      error instanceof Error && 'code' in error && error.code === 'ER_ROW_IS_REFERENCED_2'
+
+    if (isReferencedRecord) {
+      return ctx.response.status(409).send({
+        code: 'E_RESOURCE_IN_USE',
+        message: 'Nie można usunąć zasobu, ponieważ jest używany przez inne rekordy.',
+      })
+    }
+
     return super.handle(error, ctx)
   }
 
