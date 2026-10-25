@@ -1,7 +1,13 @@
 import Ingredient from '#models/ingredient'
 
 export default class IngredientService {
-  async getAll(filters: { page?: number; limit?: number; alcohol?: boolean }) {
+  async getAll(filters: {
+    page?: number
+    limit?: number
+    alcohol?: boolean
+    sortBy?: string
+    sortOrder?: 'asc' | 'desc'
+  }) {
     const page = filters.page || 1
     const limit = filters.limit || 10
 
@@ -10,6 +16,12 @@ export default class IngredientService {
     if (filters.alcohol !== undefined) {
       query.where('alcohol', filters.alcohol)
     }
+
+    const allowedSortColumns = ['id', 'name', 'category', 'created', 'updated']
+    const sortBy = allowedSortColumns.includes(filters.sortBy ?? '') ? filters.sortBy! : 'id'
+    const order = filters.sortOrder === 'desc' ? 'desc' : 'asc'
+
+    query.orderBy(sortBy, order)
 
     return await query.paginate(page, limit)
   }

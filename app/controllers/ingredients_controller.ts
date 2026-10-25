@@ -17,6 +17,8 @@ export default class IngredientsController {
       page: qs.page !== undefined ? Number(qs.page) : undefined,
       limit: qs.limit !== undefined ? Number(qs.limit) : undefined,
       alcohol: qs.alcohol === undefined ? undefined : qs.alcohol,
+      sortBy: qs.sortBy === undefined ? undefined : qs.sortBy,
+      sortOrder: qs.sortOrder === undefined ? undefined : qs.sortOrder,
     }
 
     const validatedData = await paginationValidator.validate(rawData)
@@ -27,6 +29,8 @@ export default class IngredientsController {
       page: validatedData.page,
       limit: validatedData.limit,
       alcohol: validatedData.alcohol,
+      sortBy: qs.sortBy === undefined ? undefined : qs.sortBy,
+      sortOrder: qs.sortOrder === undefined ? undefined : qs.sortOrder,
     })
 
     return response.ok(ingredients)
