@@ -51,7 +51,7 @@ export default class IngredientsController {
    * @getIngredientById
    * @summary Pobierz składnik po ID
    * @description Zwraca szczegółowe informacje o wybranym składniku.
-   * @paramPath id - ID składnika - @type(number)
+   * @paramPath id - ID składnika, dodatnia liczba całkowita - @type(integer) @required @example(1)
    * @responseBody 200 - <Ingredient> - Szczegóły składnika
    */
   async getIngredientById({ params, response }: HttpContext) {
@@ -87,6 +87,7 @@ export default class IngredientsController {
    * @deleteIngredient
    * @summary Usuń składnik
    * @description Usuwa składnik wskazany przez ID w parametrach trasy.
+   * @paramPath id - ID składnika do usunięcia, dodatnia liczba całkowita - @type(integer) @required @example(1)
    * @responseBody 200 - <ingredientIdValidator> - ID usuniętego składnika
    */
   async deleteIngredient({ params, response }: HttpContext) {
@@ -102,7 +103,7 @@ export default class IngredientsController {
    * @updateIngredient
    * @summary Aktualizuj składnik
    * @description Modyfikuje istniejący składnik i zwraca przesłane pola po walidacji.
-   * @paramPath id - ID składnika do aktualizacji - @type(number)
+   * @paramPath id - ID składnika do aktualizacji, dodatnia liczba całkowita - @type(integer) @required @example(1)
    * @requestBody <updateIngredientValidator>
    * @responseBody 200 - <updateIngredientValidator> - Zatwierdzone pola aktualizacji
    */

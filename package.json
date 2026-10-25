@@ -11,7 +11,7 @@
   "scripts": {
     "start": "node bin/server.js",
     "build": "node ace build",
-    "dev": "node ace serve --hmr",
+    "dev": "node ace serve --watch",
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -65,6 +65,7 @@
     "@japa/api-client": "^3.2.1",
     "@tuyau/core": "^1.2.2",
     "@vinejs/vine": "^4.4.0",
+    "adonis-autoswagger": "^3.73.0",
     "better-sqlite3": "^13.0.3",
     "luxon": "^3.7.2",
     "mysql2": "^3.24.6",

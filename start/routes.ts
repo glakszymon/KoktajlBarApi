@@ -1,6 +1,7 @@
 // start/routes.ts
 import router from '@adonisjs/core/services/router'
 import swaggerConfig from '#config/swagger'
+import { normalizeOpenApi } from '#config/openapi'
 import AutoSwagger from 'adonis-autoswagger'
 
 const CocktailsController = () => import('#controllers/cocktails_controller')
@@ -33,7 +34,9 @@ router
   .prefix('/cocktails')
 
 router.get('/swagger', async () => {
-  return (AutoSwagger as any).default.docs(router.toJSON(), swaggerConfig)
+  const generator = (AutoSwagger as any).default
+  const document = await generator.json(router.toJSON(), swaggerConfig)
+  return generator.jsonToYaml(normalizeOpenApi(document))
 })
 
 router.get('/docs', async () => {
