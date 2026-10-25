@@ -1,7 +1,10 @@
+// start/routes.ts
 import router from '@adonisjs/core/services/router'
+import swaggerConfig from '#config/swagger'
+import AutoSwagger from 'adonis-autoswagger'
 
-const IngredientsController = () => import('#controllers/ingredients_controller')
 const CocktailsController = () => import('#controllers/cocktails_controller')
+const IngredientsController = () => import('#controllers/ingredients_controller')
 
 router.get('/', async () => {
   return { hello: 'world' }
@@ -28,3 +31,11 @@ router
     router.patch('/:id', [CocktailsController, 'updateCocktail'])
   })
   .prefix('/cocktails')
+
+router.get('/swagger', async () => {
+  return (AutoSwagger as any).default.docs(router.toJSON(), swaggerConfig)
+})
+
+router.get('/docs', async () => {
+  return (AutoSwagger as any).default.ui('/swagger', swaggerConfig)
+})

@@ -11,6 +11,18 @@ import {
 import { paginationValidator } from '#validators/pagination'
 
 export default class CocktailsController {
+  /**
+   * @readAllCocktails
+   * @summary Pobierz listę koktajli
+   * @description Zwraca przefiltrowaną listę koktajli z obsługą paginacji i sortowania.
+   * @paramQuery page - Numer strony - @type(number)
+   * @paramQuery limit - Liczba elementów na stronie - @type(number)
+   * @paramQuery category - Filtruj po kategorii - @type(string)
+   * @paramQuery alcohol - Czy zawiera alkohol (true/false) - @type(boolean)
+   * @paramQuery sortBy - Pole sortowania (np. created) - @type(string)
+   * @paramQuery sortOrder - Kierunek sortowania (asc / desc) - @type(string)
+   * @responseBody 200 - <Cocktail[]>.with(ingredients).paginated() - Lista koktajli z metadanymi paginacji
+   */
   async readAllCocktails({ request, response }: HttpContext) {
     const qs = request.qs()
 
@@ -39,6 +51,13 @@ export default class CocktailsController {
     return response.ok(cocktails)
   }
 
+  /**
+   * @getCocktailsById
+   * @summary Pobierz koktajl po ID
+   * @description Zwraca szczegółowe informacje o wybranym koktajlu wraz ze składnikami.
+   * @paramPath id - ID koktajlu - @type(number)
+   * @responseBody 200 - <Cocktail>.with(ingredients) - Szczegóły koktajlu
+   */
   async getCocktailsById({ params, response }: HttpContext) {
     const data = await cocktailIdValidator.validate(params)
     const service = new CocktailsService()
@@ -47,6 +66,13 @@ export default class CocktailsController {
     return response.ok(cocktails)
   }
 
+  /**
+   * @addCocktail
+   * @summary Dodaj nowy koktajl
+   * @description Tworzy nowy koktajl w bazie danych wraz z przypisanymi składnikami.
+   * @requestBody <addCocktailValidator>
+   * @responseBody 201 - <Cocktail>.with(ingredients) - Koktajl został pomyślnie utworzony
+   */
   async addCocktail({ request, response }: HttpContext) {
     const data = await request.validateUsing(addCocktailValidator)
     const service = new CocktailsService()
@@ -61,6 +87,13 @@ export default class CocktailsController {
     return response.created(rec)
   }
 
+  /**
+   * @deleteCocktail
+   * @summary Usuń koktajl
+   * @description Usuwa koktajl o podanym ID z bazy danych.
+   * @paramPath id - ID koktajlu do usunięcia - @type(number)
+   * @responseBody 200 - <cocktailIdValidator> - ID usuniętego koktajlu
+   */
   async deleteCocktail({ params, response }: HttpContext) {
     const data = await cocktailIdValidator.validate(params)
 
@@ -71,6 +104,14 @@ export default class CocktailsController {
     return response.ok(data)
   }
 
+  /**
+   * @updateCocktail
+   * @summary Aktualizuj koktajl
+   * @description Modyfikuje istniejący koktajl oraz jego składniki.
+   * @paramPath id - ID koktajlu do aktualizacji - @type(number)
+   * @requestBody <updateCocktailValidator>
+   * @responseBody 200 - <Cocktail>.with(ingredients) - Zaktualizowany koktajl
+   */
   async updateCocktail({ params, request, response }: HttpContext) {
     const { id } = await cocktailIdValidator.validate(params)
     const data = await request.validateUsing(updateCocktailValidator)

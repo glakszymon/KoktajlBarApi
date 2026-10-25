@@ -10,6 +10,17 @@ import {
 import { paginationValidator } from '#validators/pagination'
 
 export default class IngredientsController {
+  /**
+   * @readAllIngredients
+   * @summary Pobierz listę składników
+   * @description Zwraca przefiltrowaną listę składników z obsługą paginacji i sortowania.
+   * @paramQuery page - Numer strony - @type(number)
+   * @paramQuery limit - Liczba elementów na stronie - @type(number)
+   * @paramQuery alcohol - Czy składnik zawiera alkohol (true/false) - @type(boolean)
+   * @paramQuery sortBy - Pole sortowania (np. name) - @type(string)
+   * @paramQuery sortOrder - Kierunek sortowania (asc / desc) - @type(string)
+   * @responseBody 200 - <Ingredient[]>.paginated() - Lista składników z metadanymi paginacji
+   */
   async readAllIngredients({ request, response }: HttpContext) {
     const qs = request.qs()
 
@@ -36,6 +47,13 @@ export default class IngredientsController {
     return response.ok(ingredients)
   }
 
+  /**
+   * @getIngredientById
+   * @summary Pobierz składnik po ID
+   * @description Zwraca szczegółowe informacje o wybranym składniku.
+   * @paramPath id - ID składnika - @type(number)
+   * @responseBody 200 - <Ingredient> - Szczegóły składnika
+   */
   async getIngredientById({ params, response }: HttpContext) {
     const data = await ingredientIdValidator.validate(params)
     const service = new IngredientService()
@@ -43,6 +61,13 @@ export default class IngredientsController {
     return response.ok(ingredient)
   }
 
+  /**
+   * @addIngredient
+   * @summary Dodaj nowy składnik
+   * @description Tworzy nowy składnik w bazie danych.
+   * @requestBody <addIngredientValidator>
+   * @responseBody 201 - <Ingredient> - Składnik został pomyślnie utworzony
+   */
   async addIngredient({ request, response }: HttpContext) {
     const data = await request.validateUsing(addIngredientValidator)
 
@@ -58,6 +83,12 @@ export default class IngredientsController {
     return response.created(ingredient)
   }
 
+  /**
+   * @deleteIngredient
+   * @summary Usuń składnik
+   * @description Usuwa składnik wskazany przez ID w parametrach trasy.
+   * @responseBody 200 - <ingredientIdValidator> - ID usuniętego składnika
+   */
   async deleteIngredient({ params, response }: HttpContext) {
     const data = await ingredientIdValidator.validate(params)
 
@@ -67,6 +98,14 @@ export default class IngredientsController {
     return response.ok(data)
   }
 
+  /**
+   * @updateIngredient
+   * @summary Aktualizuj składnik
+   * @description Modyfikuje istniejący składnik i zwraca przesłane pola po walidacji.
+   * @paramPath id - ID składnika do aktualizacji - @type(number)
+   * @requestBody <updateIngredientValidator>
+   * @responseBody 200 - <updateIngredientValidator> - Zatwierdzone pola aktualizacji
+   */
   async updateIngredient({ params, request, response }: HttpContext) {
     const identification = await ingredientIdValidator.validate(params)
     const data = await request.validateUsing(updateIngredientValidator)
