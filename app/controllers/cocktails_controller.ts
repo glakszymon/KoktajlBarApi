@@ -17,7 +17,7 @@ export default class CocktailsController {
    * @description Zwraca przefiltrowaną listę koktajli z obsługą paginacji i sortowania.
    * @paramQuery page - Numer strony, dodatnia liczba całkowita (domyślnie 1) - @type(integer) @example(1)
    * @paramQuery limit - Liczba elementów na stronie, od 1 do 100 (domyślnie 10) - @type(integer) @example(10)
-   * @paramQuery category - Filtruj po kategorii koktajlu - @type(string) @example(Owocowy)
+   * @paramQuery category - Filtruj po kategorii koktajlu - @type(string)
    * @paramQuery alcohol - Filtruj koktajle mające składnik o wskazanej zawartości alkoholu - @type(boolean) @example(true)
    * @paramQuery sortBy - Pole sortowania (domyślnie id) - @type(string) @enum(id,name,category,created,updated)
    * @paramQuery sortOrder - Kierunek sortowania (domyślnie asc) - @type(string) @enum(asc,desc)

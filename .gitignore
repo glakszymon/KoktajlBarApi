@@ -4,6 +4,12 @@ build
 tmp/*
 !tmp/.gitkeep
 
+# Lokalne materiały robocze
+/notes/
+/todos/
+/compound-engineering.local.md
+/docs/brainstorms/
+
 # Secrets
 .env
 .env.local
@@ -25,5 +31,17 @@ yarn-error.log
 # Platform specific
 .DS_Store
 
+/docs/
+/node_modules/
+/build/
+/tmp/
+/coverage/
+/.idea/
+*.log
+
 # Project exclude paths
 /tmp/
+
+.env.*
+!.env.example
+!.env.test
