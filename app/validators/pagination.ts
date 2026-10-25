@@ -16,7 +16,7 @@ export const paginationIngredientValidator = vine.compile(
     page: vine.number().withoutDecimals().positive().optional(),
     limit: vine.number().withoutDecimals().positive().max(100).optional(),
     alcohol: vine.boolean().optional(),
-    sortBy: vine.enum(['id', 'name', 'category', 'created', 'updated']).optional(),
+    sortBy: vine.enum(['id', 'name', 'created', 'updated']).optional(),
     sortOrder: vine.enum(['asc', 'desc']).optional(),
   })
 )

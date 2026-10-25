@@ -40,8 +40,8 @@ export default class IngredientsController {
       page: validatedData.page,
       limit: validatedData.limit,
       alcohol: validatedData.alcohol,
-      sortBy: qs.sortBy === undefined ? undefined : qs.sortBy,
-      sortOrder: qs.sortOrder === undefined ? undefined : qs.sortOrder,
+      sortBy: validatedData.sortBy,
+      sortOrder: validatedData.sortOrder,
     })
 
     return response.ok(ingredients)

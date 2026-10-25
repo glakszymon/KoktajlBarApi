@@ -17,7 +17,7 @@ export default class IngredientService {
       query.where('alcohol', filters.alcohol)
     }
 
-    const allowedSortColumns = ['id', 'name', 'category', 'created', 'updated']
+    const allowedSortColumns = ['id', 'name', 'created', 'updated']
     const sortBy = allowedSortColumns.includes(filters.sortBy ?? '') ? filters.sortBy! : 'id'
     const order = filters.sortOrder === 'desc' ? 'desc' : 'asc'
 
