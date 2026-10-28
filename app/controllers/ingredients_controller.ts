@@ -112,8 +112,8 @@ export default class IngredientsController {
     const data = await request.validateUsing(updateIngredientValidator)
 
     const service = new IngredientService()
-    await service.updateRecord(identification.id, data)
+    const updatedData = await service.updateRecord(identification.id, data)
 
-    return response.ok(data)
+    return response.ok(updatedData)
   }
 }
