@@ -16,4 +16,10 @@ export interface ApiDefinition {
     deleteCocktail: typeof routes['cocktails.delete_cocktail']
     updateCocktail: typeof routes['cocktails.update_cocktail']
   }
+  auth: {
+    register: typeof routes['auth.register']
+    login: typeof routes['auth.login']
+    me: typeof routes['auth.me']
+    logout: typeof routes['auth.logout']
+  }
 }

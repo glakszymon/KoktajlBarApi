@@ -14,22 +14,31 @@ export type ScannedRoutes = {
     'cocktails.add_cocktail': { paramsTuple?: []; params?: {} }
     'cocktails.delete_cocktail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cocktails.update_cocktail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'auth.register': { paramsTuple?: []; params?: {} }
+    'auth.login': { paramsTuple?: []; params?: {} }
+    'auth.me': { paramsTuple?: []; params?: {} }
+    'auth.logout': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'ingredients.read_all_ingredients': { paramsTuple?: []; params?: {} }
     'ingredients.get_ingredient_by_id': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cocktails.read_all_cocktails': { paramsTuple?: []; params?: {} }
     'cocktails.get_cocktails_by_id': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'auth.me': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'ingredients.read_all_ingredients': { paramsTuple?: []; params?: {} }
     'ingredients.get_ingredient_by_id': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cocktails.read_all_cocktails': { paramsTuple?: []; params?: {} }
     'cocktails.get_cocktails_by_id': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'auth.me': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'ingredients.add_ingredient': { paramsTuple?: []; params?: {} }
     'cocktails.add_cocktail': { paramsTuple?: []; params?: {} }
+    'auth.register': { paramsTuple?: []; params?: {} }
+    'auth.login': { paramsTuple?: []; params?: {} }
+    'auth.logout': { paramsTuple?: []; params?: {} }
   }
   DELETE: {
     'ingredients.delete_ingredient': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

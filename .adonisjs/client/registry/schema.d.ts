@@ -14,7 +14,7 @@ export interface Registry {
       body: {}
       paramsTuple: []
       params: {}
-      query: ExtractQueryForGet<InferInput<(typeof import('#validators/pagination').paginationValidator)>>
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/pagination').paginationIngredientValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/ingredients_controller').default['readAllIngredients']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/ingredients_controller').default['readAllIngredients']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
@@ -74,7 +74,7 @@ export interface Registry {
       body: {}
       paramsTuple: []
       params: {}
-      query: ExtractQueryForGet<InferInput<(typeof import('#validators/pagination').paginationValidator)>>
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/pagination').paginationCocktailValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/cocktails_controller').default['readAllCocktails']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/cocktails_controller').default['readAllCocktails']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
@@ -125,6 +125,54 @@ export interface Registry {
       query: ExtractQuery<InferInput<(typeof import('#validators/cocktail').updateCocktailValidator)>|InferInput<(typeof import('#validators/cocktail').cocktailIdValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/cocktails_controller').default['updateCocktail']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/cocktails_controller').default['updateCocktail']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'auth.register': {
+    methods: ["POST"]
+    pattern: '/auth/register'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/auth').registerValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/auth').registerValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['register']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['register']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'auth.login': {
+    methods: ["POST"]
+    pattern: '/auth/login'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/auth').loginValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/auth').loginValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['login']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['login']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'auth.me': {
+    methods: ["GET","HEAD"]
+    pattern: '/auth/me'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['me']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['me']>>>
+    }
+  }
+  'auth.logout': {
+    methods: ["POST"]
+    pattern: '/auth/logout'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['logout']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['logout']>>>
     }
   }
 }

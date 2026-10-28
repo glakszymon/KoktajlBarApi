@@ -4,6 +4,7 @@
  */
 
 export const controllers = {
+  Auth: () => import('#controllers/auth_controller'),
   Cocktails: () => import('#controllers/cocktails_controller'),
   Ingredients: () => import('#controllers/ingredients_controller'),
 }

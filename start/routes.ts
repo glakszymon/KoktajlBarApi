@@ -3,6 +3,8 @@ import router from '@adonisjs/core/services/router'
 import swaggerConfig from '#config/swagger'
 import { normalizeOpenApi } from '#config/openapi'
 import AutoSwagger from 'adonis-autoswagger'
+const AuthController = () => import('#controllers/auth_controller')
+import { middleware } from '#start/kernel'
 
 const CocktailsController = () => import('#controllers/cocktails_controller')
 const IngredientsController = () => import('#controllers/ingredients_controller')
@@ -42,3 +44,14 @@ router.get('/swagger', async () => {
 router.get('/docs', async () => {
   return (AutoSwagger as any).default.ui('/swagger', swaggerConfig)
 })
+
+router
+  .group(() => {
+    router.post('/register', [AuthController, 'register'])
+    router.post('/login', [AuthController, 'login'])
+
+    router.get('/me', [AuthController, 'me']).use(middleware.auth({ guards: ['api'] }))
+
+    router.post('/logout', [AuthController, 'logout']).use(middleware.auth({ guards: ['api'] }))
+  })
+  .prefix('/auth')

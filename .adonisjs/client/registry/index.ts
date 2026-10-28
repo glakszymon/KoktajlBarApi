@@ -66,6 +66,30 @@ const routes = {
     tokens: [{"old":"/cocktails/:id","type":0,"val":"cocktails","end":""},{"old":"/cocktails/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['cocktails.update_cocktail']['types'],
   },
+  'auth.register': {
+    methods: ["POST"],
+    pattern: '/auth/register',
+    tokens: [{"old":"/auth/register","type":0,"val":"auth","end":""},{"old":"/auth/register","type":0,"val":"register","end":""}],
+    types: placeholder as Registry['auth.register']['types'],
+  },
+  'auth.login': {
+    methods: ["POST"],
+    pattern: '/auth/login',
+    tokens: [{"old":"/auth/login","type":0,"val":"auth","end":""},{"old":"/auth/login","type":0,"val":"login","end":""}],
+    types: placeholder as Registry['auth.login']['types'],
+  },
+  'auth.me': {
+    methods: ["GET","HEAD"],
+    pattern: '/auth/me',
+    tokens: [{"old":"/auth/me","type":0,"val":"auth","end":""},{"old":"/auth/me","type":0,"val":"me","end":""}],
+    types: placeholder as Registry['auth.me']['types'],
+  },
+  'auth.logout': {
+    methods: ["POST"],
+    pattern: '/auth/logout',
+    tokens: [{"old":"/auth/logout","type":0,"val":"auth","end":""},{"old":"/auth/logout","type":0,"val":"logout","end":""}],
+    types: placeholder as Registry['auth.logout']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }
