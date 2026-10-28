@@ -22,4 +22,7 @@ export interface ApiDefinition {
     me: typeof routes['auth.me']
     logout: typeof routes['auth.logout']
   }
+  userRoles: {
+    update: typeof routes['user_roles.update']
+  }
 }

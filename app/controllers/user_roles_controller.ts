@@ -3,6 +3,17 @@ import { updateUserRoleValidator } from '#validators/user_role'
 import User from '#models/user'
 
 export default class UserRolesController {
+  /**
+   * @update
+   * @summary Zmień rolę użytkownika
+   * @description Wymaga roli admin. Body zawiera wyłącznie role: user lub admin; id podaj w ścieżce. Administrator nie może zmienić własnej roli.
+   * @paramPath id - ID innego użytkownika, dodatnia liczba całkowita - @type(integer) @required @example(2)
+   * @requestBody {"role":"admin"}
+   * @responseBody 200 - Dane użytkownika wraz z nową rolą
+   * @responseBody 403 - Brak roli admin lub próba zmiany własnej roli
+   * @responseBody 404 - Nie znaleziono użytkownika
+   * @responseBody 422 - Nieprawidłowe ID lub rola
+   */
   async update({ request, auth, response }: HttpContext) {
     const data = await request.validateUsing(updateUserRoleValidator)
 

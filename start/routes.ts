@@ -5,7 +5,7 @@ import { normalizeOpenApi } from '#config/openapi'
 import AutoSwagger from 'adonis-autoswagger'
 const AuthController = () => import('#controllers/auth_controller')
 import { middleware } from '#start/kernel'
-import UserRolesController from '#controllers/user_roles_controller'
+const UserRolesController = () => import('#controllers/user_roles_controller')
 
 const CocktailsController = () => import('#controllers/cocktails_controller')
 const IngredientsController = () => import('#controllers/ingredients_controller')

@@ -4,8 +4,9 @@ import {
   paginationMetaExample,
   schemaExamples,
 } from './openapi_examples.js'
+import { documentAuth } from './openapi_auth.js'
 
-type Schema = {
+export type Schema = {
   $ref?: string
   description?: string
   format?: string
@@ -26,11 +27,12 @@ type Schema = {
 
 type MediaType = { schema?: Schema; example?: unknown }
 type Response = { description: string; content?: Record<string, MediaType> }
-type Operation = {
+export type Operation = {
   description?: string
   parameters?: { in: string; name: string; required?: boolean; schema?: Schema }[]
   responses?: Record<string, Response>
   requestBody?: { required?: boolean; content?: Record<string, MediaType> }
+  security?: Record<string, string[]>[]
 }
 
 type OpenApiDocument = {
@@ -396,5 +398,6 @@ export function normalizeOpenApi<T extends OpenApiDocument>(document: T): T {
   if (responses?.NotFound) responses.NotFound.description = 'The resource was not found'
   if (responses?.NotAcceptable)
     responses.NotAcceptable.description = 'No acceptable representation is available'
+  documentAuth(document)
   return document
 }

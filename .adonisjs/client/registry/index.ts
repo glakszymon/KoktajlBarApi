@@ -90,6 +90,12 @@ const routes = {
     tokens: [{"old":"/auth/logout","type":0,"val":"auth","end":""},{"old":"/auth/logout","type":0,"val":"logout","end":""}],
     types: placeholder as Registry['auth.logout']['types'],
   },
+  'user_roles.update': {
+    methods: ["PATCH"],
+    pattern: '/users/:id/role',
+    tokens: [{"old":"/users/:id/role","type":0,"val":"users","end":""},{"old":"/users/:id/role","type":1,"val":"id","end":""},{"old":"/users/:id/role","type":0,"val":"role","end":""}],
+    types: placeholder as Registry['user_roles.update']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

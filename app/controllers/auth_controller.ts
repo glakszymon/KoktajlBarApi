@@ -11,6 +11,14 @@ function publicUser(user: User) {
 }
 
 export default class AuthController {
+  /**
+   * @register
+   * @summary Zarejestruj użytkownika
+   * @description Publiczny endpoint. Tworzy konto z rolą user, bez automatycznego logowania. Hasło musi mieć od 15 do 128 znaków; password_confirmation musi być identyczne. Email jest normalizowany do małych liter i musi być unikalny.
+   * @requestBody <registerValidator>
+   * @responseBody 201 - Konto zostało utworzone; zaloguj się przez POST /auth/login
+   * @responseBody 422 - Błąd walidacji lub zajęty email
+   */
   async register({ request, response }: HttpContext) {
     const data = await request.validateUsing(registerValidator)
 
@@ -23,6 +31,15 @@ export default class AuthController {
     return response.created({ user: publicUser(user) })
   }
 
+  /**
+   * @login
+   * @summary Zaloguj użytkownika
+   * @description Publiczny endpoint. Zwraca token.value ważny 24 godziny. W Swagger UI wklej sam token w Authorize → BearerAuth; w żądaniach HTTP używaj Authorization: Bearer <token>.
+   * @requestBody <loginValidator>
+   * @responseBody 200 - Token dostępu i dane użytkownika
+   * @responseBody 400 - Nieprawidłowy email lub hasło
+   * @responseBody 422 - Błąd walidacji danych logowania
+   */
   async login({ request, response }: HttpContext) {
     const { email, password } = await request.validateUsing(loginValidator)
 
@@ -39,12 +56,24 @@ export default class AuthController {
     })
   }
 
+  /**
+   * @me
+   * @summary Pobierz dane zalogowanego użytkownika
+   * @description Wymaga tokena Bearer. Zwraca id, name i email; odpowiedź nie zawiera roli ani hasła.
+   * @responseBody 200 - Dane zalogowanego użytkownika
+   */
   async me({ auth, response }: HttpContext) {
     const user = auth.use('api').getUserOrFail()
 
     return response.ok({ user: publicUser(user) })
   }
 
+  /**
+   * @logout
+   * @summary Wyloguj użytkownika
+   * @description Unieważnia wyłącznie bieżący token Bearer. Nie wymaga body. Po wylogowaniu usuń token również z Authorize w Swagger UI.
+   * @responseBody 204 - Token został unieważniony; odpowiedź bez body
+   */
   async logout({ auth, response }: HttpContext) {
     await auth.use('api').invalidateToken()
 

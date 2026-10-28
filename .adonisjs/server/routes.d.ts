@@ -18,6 +18,7 @@ export type ScannedRoutes = {
     'auth.login': { paramsTuple?: []; params?: {} }
     'auth.me': { paramsTuple?: []; params?: {} }
     'auth.logout': { paramsTuple?: []; params?: {} }
+    'user_roles.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'ingredients.read_all_ingredients': { paramsTuple?: []; params?: {} }
@@ -47,6 +48,7 @@ export type ScannedRoutes = {
   PATCH: {
     'ingredients.update_ingredient': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cocktails.update_cocktail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'user_roles.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

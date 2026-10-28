@@ -175,4 +175,16 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['logout']>>>
     }
   }
+  'user_roles.update': {
+    methods: ["PATCH"]
+    pattern: '/users/:id/role'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/user_role').updateUserRoleValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/user_role').updateUserRoleValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/user_roles_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/user_roles_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
 }

@@ -11,7 +11,11 @@ export default {
     title: 'Koktajl Bar Api',
     version: '1.0.0',
     description:
-      'Oficjalna dokumentacja api z przepisami na koktajle. Projektu rekrutacyjnego do SOLVRO.',
+      'API z przepisami na koktajle — projekt rekrutacyjny do SOLVRO. ' +
+      'Zarejestruj konto przez POST /auth/register, a następnie zaloguj się przez POST /auth/login. ' +
+      'Skopiuj token.value i wklej sam token (bez prefiksu Bearer) w Authorize → BearerAuth. ' +
+      'Token jest ważny 24 godziny. Odczyt wymaga zalogowania; zapis i zmiana ról wymagają roli admin. ' +
+      'Rejestracja tworzy konto z rolą user. Przykładowe dane w dokumentacji nie są automatycznie tworzone w bazie.',
   },
   snakeCase: true,
 
@@ -26,7 +30,13 @@ export default {
     headers: {},
   },
 
-  securitySchemes: {},
-  defaultSecurityScheme: undefined,
+  securitySchemes: {
+    BearerAuth: {
+      type: 'http',
+      scheme: 'bearer',
+      description: 'Token dostępu z token.value odpowiedzi POST /auth/login. Wklej sam token.',
+    },
+  },
+  defaultSecurityScheme: 'BearerAuth',
   authMiddlewares: [],
 }
