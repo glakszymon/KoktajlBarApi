@@ -1,12 +1,16 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
+
 import Ingredient from '#models/ingredient'
 import type User from '#models/user'
+
 import { createUser } from '#tests/helpers/user'
 
 test.group('Ingredients | tworzenie', (group) => {
   let admin: User
+
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
+
   group.each.setup(async () => {
     admin = await createUser('admin')
   })
@@ -39,6 +43,7 @@ test.group('Ingredients | tworzenie', (group) => {
       if (!('id' in body)) throw new Error('Brak id utworzonego składnika')
 
       const ingredient = await Ingredient.findOrFail(body.id)
+
       assert.equal(ingredient.name, row.expectedName)
       assert.equal(ingredient.description, payload.description)
       assert.equal(ingredient.photoUrl, payload.photoUrl)
@@ -47,6 +52,7 @@ test.group('Ingredients | tworzenie', (group) => {
         .get(`/ingredients/${ingredient.id}`)
         .withGuard('api')
         .loginAs(admin)
+
       readResponse.assertStatus(200)
       readResponse.assertBodyContains({
         id: ingredient.id,
@@ -68,6 +74,7 @@ test.group('Ingredients | tworzenie', (group) => {
     ])
     .run(async ({ client, assert }, row) => {
       const before = await Ingredient.query().count('* as total')
+
       const response = await client
         .post('/ingredients')
         .withGuard('api')

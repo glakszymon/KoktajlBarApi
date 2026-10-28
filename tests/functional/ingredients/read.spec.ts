@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import db from '@adonisjs/lucid/services/db'
+
 import { IngredientFactory } from '#tests/helpers/ingredient_factory.spec'
 import type User from '#models/user'
 import { createUser } from '#tests/helpers/user'
@@ -17,7 +18,9 @@ function readPage(response: { body(): unknown }): IngredientPage {
 
 test.group('Ingredients | odczyt', (group) => {
   let user: User
+
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
+
   group.each.setup(async () => {
     user = await createUser()
   })
@@ -85,10 +88,12 @@ test.group('Ingredients | odczyt', (group) => {
 
 test.group('Ingredients | odczyt listy', (group) => {
   let user: User
+
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   group.each.setup(async () => {
     user = await createUser()
+
     await db.from('cocktail_ingredients').delete()
     await db.from('ingredients').delete()
   })
@@ -123,14 +128,17 @@ test.group('Ingredients | odczyt listy', (group) => {
     response.assertBodyContains({
       meta: { total: 11, currentPage: 1, perPage: 10, lastPage: 2 },
     })
+
     const body = readPage(response)
     assert.lengthOf(body.data, 10)
     assert.deepEqual(
       body.data.map((item: { id: number }) => item.id),
       ingredients.slice(0, 10).map((ingredient) => ingredient.id)
     )
+
     assert.isString(body.meta.nextPageUrl)
     if (!body.meta.nextPageUrl) throw new Error('Brak linku do kolejnej strony')
+
     const next = new URL(body.meta.nextPageUrl, 'http://localhost')
     assert.equal(next.searchParams.get('page'), '2')
   })
@@ -171,6 +179,7 @@ test.group('Ingredients | odczyt listy', (group) => {
     })
     assert.lengthOf(readPage(first).data, 2)
     assert.lengthOf(readPage(second).data, 1)
+
     const firstIds = readPage(first).data.map((item) => item.id)
     assert.deepEqual(
       firstIds,
@@ -217,7 +226,7 @@ test.group('Ingredients | odczyt listy', (group) => {
 
       response.assertStatus(200)
       response.assertBodyContains({ meta: { total: 2 } })
-      // Dokładne porównanie ID sprawdza też wykluczenie drugiej grupy.
+
       assert.deepEqual(
         readPage(response).data.map((item) => item.id),
         expected.map((ingredient) => ingredient.id)
@@ -272,9 +281,11 @@ test.group('Ingredients | odczyt listy', (group) => {
       readPage(response).data.map((item) => item.id),
       [ingredients[0].id, ingredients[2].id]
     )
+
     const nextPageUrl = readPage(response).meta.nextPageUrl
     assert.isString(nextPageUrl)
     if (!nextPageUrl) throw new Error('Brak linku do kolejnej strony')
+
     const next = new URL(nextPageUrl, 'http://localhost')
     assert.equal(next.pathname, '/ingredients')
     assert.equal(next.searchParams.get('page'), '2')

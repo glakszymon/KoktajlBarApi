@@ -1,4 +1,5 @@
 import Factory from '@adonisjs/lucid/factories'
+
 import Ingredient from '#models/ingredient'
 
 export const IngredientFactory = Factory.define(Ingredient, ({ faker }) => {
