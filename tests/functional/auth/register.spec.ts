@@ -42,6 +42,7 @@ test.group('Auth | rejestracja', (group) => {
       })
 
       assert.equal(user.name, validPayload.name)
+      assert.equal(user.role, 'user')
       assert.notEqual(user.passwordHash, payload.password)
       assert.isTrue(await user.verifyPassword(payload.password))
       assert.equal(await countUsers(), before + 1)
@@ -55,7 +56,7 @@ test.group('Auth | rejestracja', (group) => {
       {
         label: 'password_confirmation',
         missing: ['password_confirmation'],
-        fields: ['password'],
+        fields: ['password_confirmation'],
       },
       {
         label: 'wszystkie pola',
@@ -107,12 +108,12 @@ test.group('Auth | rejestracja', (group) => {
       {
         label: 'potwierdzenie różni się od hasła',
         changes: { password_confirmation: 'inne-bezpieczne-haslo-123' },
-        field: 'password',
+        field: 'password_confirmation',
       },
       {
         label: 'puste potwierdzenie hasła',
         changes: { password_confirmation: '' },
-        field: 'password',
+        field: 'password_confirmation',
       },
     ])
     .run(async ({ client, assert }, row) => {
@@ -126,6 +127,15 @@ test.group('Auth | rejestracja', (group) => {
       response.assertBodyContains({ errors: [{ field: row.field }] })
       assert.equal(await countUsers(), before)
     })
+
+  test('nie pozwala nadać sobie roli admin podczas rejestracji', async ({ client, assert }) => {
+    const response = await client
+      .post('/auth/register')
+      .unsafeJson({ ...validPayload, role: 'admin' })
+    response.assertStatus(201)
+    const user = await User.findByOrFail('email', validPayload.email)
+    assert.equal(user.role, 'user')
+  })
 
   test('odrzuca powtórzony email: {label}')
     .with([

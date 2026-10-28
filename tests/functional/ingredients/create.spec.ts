@@ -1,9 +1,15 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import Ingredient from '#models/ingredient'
+import type User from '#models/user'
+import { createUser } from '#tests/helpers/user'
 
 test.group('Ingredients | tworzenie', (group) => {
+  let admin: User
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
+  group.each.setup(async () => {
+    admin = await createUser('admin')
+  })
 
   test('zapisuje poprawną nazwę: {label}')
     .with([
@@ -20,7 +26,11 @@ test.group('Ingredients | tworzenie', (group) => {
         photoUrl: 'https://example.com/mint.jpg',
       }
 
-      const response = await client.post('/ingredients').json(payload)
+      const response = await client
+        .post('/ingredients')
+        .withGuard('api')
+        .loginAs(admin)
+        .json(payload)
 
       response.assertStatus(201)
       response.assertBodyContains({ ...payload, name: row.expectedName })
@@ -33,7 +43,10 @@ test.group('Ingredients | tworzenie', (group) => {
       assert.equal(ingredient.description, payload.description)
       assert.equal(ingredient.photoUrl, payload.photoUrl)
 
-      const readResponse = await client.get(`/ingredients/${ingredient.id}`)
+      const readResponse = await client
+        .get(`/ingredients/${ingredient.id}`)
+        .withGuard('api')
+        .loginAs(admin)
       readResponse.assertStatus(200)
       readResponse.assertBodyContains({
         id: ingredient.id,
@@ -55,13 +68,17 @@ test.group('Ingredients | tworzenie', (group) => {
     ])
     .run(async ({ client, assert }, row) => {
       const before = await Ingredient.query().count('* as total')
-      const response = await client.post('/ingredients').json({
-        name: 'Mięta',
-        description: 'Świeże liście mięty',
-        alcohol: false,
-        photoUrl: 'https://example.com/mint.jpg',
-        ...row.changes,
-      })
+      const response = await client
+        .post('/ingredients')
+        .withGuard('api')
+        .loginAs(admin)
+        .unsafeJson({
+          name: 'Mięta',
+          description: 'Świeże liście mięty',
+          alcohol: false,
+          photoUrl: 'https://example.com/mint.jpg',
+          ...row.changes,
+        })
 
       response.assertStatus(422)
       response.assertBodyContains({ errors: [{ field: row.field }] })

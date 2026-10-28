@@ -2,6 +2,8 @@ import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import db from '@adonisjs/lucid/services/db'
 import { IngredientFactory } from '#tests/helpers/ingredient_factory.spec'
+import type User from '#models/user'
+import { createUser } from '#tests/helpers/user'
 
 type IngredientPage = {
   data: { id: number; name: string }[]
@@ -14,14 +16,21 @@ function readPage(response: { body(): unknown }): IngredientPage {
 }
 
 test.group('Ingredients | odczyt', (group) => {
+  let user: User
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
+  group.each.setup(async () => {
+    user = await createUser()
+  })
 
   test('odczytuje składnik po id', async ({ client }) => {
     // Fabryka generuje dane i zapisuje rekord w bazie
     const ingredient = await IngredientFactory.create()
 
     // Odczytujemy go przez API
-    const response = await client.get(`/ingredients/${ingredient.id}`)
+    const response = await client
+      .get(`/ingredients/${ingredient.id}`)
+      .withGuard('api')
+      .loginAs(user)
 
     // Porównujemy odpowiedź z wartościami wygenerowanymi przez fabrykę
     response.assertStatus(200)
@@ -38,7 +47,7 @@ test.group('Ingredients | odczyt', (group) => {
     const id = ingredient.id
     await ingredient.delete()
 
-    const response = await client.get(`/ingredients/${id}`)
+    const response = await client.get(`/ingredients/${id}`).withGuard('api').loginAs(user)
 
     response.assertStatus(404)
   })
@@ -46,7 +55,7 @@ test.group('Ingredients | odczyt', (group) => {
   test('Niepoprawny format id: {id}')
     .with([{ id: 'abc' }, { id: '0' }, { id: '-1' }, { id: '1.5' }])
     .run(async ({ client }, { id }) => {
-      const response = await client.get(`/ingredients/${id}`)
+      const response = await client.get(`/ingredients/${id}`).withGuard('api').loginAs(user)
 
       response.assertStatus(422)
       response.assertBodyContains({
@@ -60,7 +69,10 @@ test.group('Ingredients | odczyt', (group) => {
       photoUrl: null,
     }).create()
 
-    const response = await client.get(`/ingredients/${ingredient.id}`)
+    const response = await client
+      .get(`/ingredients/${ingredient.id}`)
+      .withGuard('api')
+      .loginAs(user)
 
     response.assertStatus(200)
     response.assertBodyContains({
@@ -72,9 +84,11 @@ test.group('Ingredients | odczyt', (group) => {
 })
 
 test.group('Ingredients | odczyt listy', (group) => {
+  let user: User
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   group.each.setup(async () => {
+    user = await createUser()
     await db.from('cocktail_ingredients').delete()
     await db.from('ingredients').delete()
   })
@@ -82,7 +96,7 @@ test.group('Ingredients | odczyt listy', (group) => {
   test('zwraca listę składników i metadane paginacji', async ({ client, assert }) => {
     const ingredients = await IngredientFactory.createMany(3)
 
-    const response = await client.get('/ingredients')
+    const response = await client.get('/ingredients').withGuard('api').loginAs(user)
 
     response.assertStatus(200)
     response.assertBodyContains({
@@ -103,7 +117,7 @@ test.group('Ingredients | odczyt listy', (group) => {
   }) => {
     const ingredients = await IngredientFactory.createMany(11)
 
-    const response = await client.get('/ingredients')
+    const response = await client.get('/ingredients').withGuard('api').loginAs(user)
 
     response.assertStatus(200)
     response.assertBodyContains({
@@ -124,7 +138,11 @@ test.group('Ingredients | odczyt listy', (group) => {
   test('ogranicza liczbę składników parametrem limit', async ({ client, assert }) => {
     await IngredientFactory.createMany(3)
 
-    const response = await client.get('/ingredients').qs({ limit: 2 })
+    const response = await client
+      .get('/ingredients')
+      .withGuard('api')
+      .loginAs(user)
+      .qs({ limit: 2 })
 
     response.assertStatus(200)
     response.assertBodyContains({ meta: { total: 3, perPage: 2, currentPage: 1 } })
@@ -134,8 +152,16 @@ test.group('Ingredients | odczyt listy', (group) => {
   test('zwraca ostatni składnik na drugiej stronie bez powtórzeń', async ({ client, assert }) => {
     const ingredients = await IngredientFactory.createMany(3)
 
-    const first = await client.get('/ingredients').qs({ limit: 2, page: 1 })
-    const second = await client.get('/ingredients').qs({ limit: 2, page: 2 })
+    const first = await client
+      .get('/ingredients')
+      .withGuard('api')
+      .loginAs(user)
+      .qs({ limit: 2, page: 1 })
+    const second = await client
+      .get('/ingredients')
+      .withGuard('api')
+      .loginAs(user)
+      .qs({ limit: 2, page: 2 })
 
     first.assertStatus(200)
     second.assertStatus(200)
@@ -163,7 +189,11 @@ test.group('Ingredients | odczyt listy', (group) => {
         await IngredientFactory.merge({ name }).create()
       }
 
-      const response = await client.get('/ingredients').qs({ sortBy: 'name', sortOrder })
+      const response = await client
+        .get('/ingredients')
+        .withGuard('api')
+        .loginAs(user)
+        .qs({ sortBy: 'name', sortOrder })
 
       response.assertStatus(200)
       assert.deepEqual(
@@ -179,7 +209,11 @@ test.group('Ingredients | odczyt listy', (group) => {
       const nonAlcoholic = await IngredientFactory.merge({ alcohol: false }).createMany(2)
       const expected = alcohol ? alcoholic : nonAlcoholic
 
-      const response = await client.get('/ingredients').qs({ alcohol })
+      const response = await client
+        .get('/ingredients')
+        .withGuard('api')
+        .loginAs(user)
+        .qs({ alcohol })
 
       response.assertStatus(200)
       response.assertBodyContains({ meta: { total: 2 } })
@@ -196,7 +230,11 @@ test.group('Ingredients | odczyt listy', (group) => {
   }) => {
     await IngredientFactory.merge({ alcohol: true }).createMany(3)
 
-    const response = await client.get('/ingredients').qs({ alcohol: false })
+    const response = await client
+      .get('/ingredients')
+      .withGuard('api')
+      .loginAs(user)
+      .qs({ alcohol: false })
 
     response.assertStatus(200)
     response.assertBodyContains({ meta: { total: 0, nextPageUrl: null } })
@@ -204,7 +242,7 @@ test.group('Ingredients | odczyt listy', (group) => {
   })
 
   test('zwraca pustą listę dla pustej bazy', async ({ client, assert }) => {
-    const response = await client.get('/ingredients')
+    const response = await client.get('/ingredients').withGuard('api').loginAs(user)
 
     response.assertStatus(200)
     response.assertBodyContains({ meta: { total: 0, currentPage: 1, nextPageUrl: null } })
@@ -221,7 +259,7 @@ test.group('Ingredients | odczyt listy', (group) => {
     }
     await IngredientFactory.merge({ name: 'Wódka', alcohol: true }).create()
 
-    const response = await client.get('/ingredients').qs({
+    const response = await client.get('/ingredients').withGuard('api').loginAs(user).qs({
       alcohol: false,
       limit: 2,
       sortBy: 'name',
@@ -245,7 +283,7 @@ test.group('Ingredients | odczyt listy', (group) => {
     assert.equal(next.searchParams.get('sortBy'), 'name')
     assert.equal(next.searchParams.get('sortOrder'), 'desc')
 
-    const second = await client.get(`${next.pathname}${next.search}`)
+    const second = await client.get(`${next.pathname}${next.search}`).withGuard('api').loginAs(user)
 
     second.assertStatus(200)
     second.assertBodyContains({ meta: { total: 3, currentPage: 2, nextPageUrl: null } })
