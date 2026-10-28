@@ -22,7 +22,6 @@ export default class extends BaseSchema {
       table.string('hash').notNullable()
 
       table.text('abilities').notNullable()
-
       table.timestamp('created_at')
       table.timestamp('updated_at')
 

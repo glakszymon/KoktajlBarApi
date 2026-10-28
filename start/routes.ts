@@ -5,6 +5,7 @@ import { normalizeOpenApi } from '#config/openapi'
 import AutoSwagger from 'adonis-autoswagger'
 const AuthController = () => import('#controllers/auth_controller')
 import { middleware } from '#start/kernel'
+import UserRolesController from '#controllers/user_roles_controller'
 
 const CocktailsController = () => import('#controllers/cocktails_controller')
 const IngredientsController = () => import('#controllers/ingredients_controller')
@@ -18,22 +19,36 @@ router
   .group(() => {
     router.get('/', [IngredientsController, 'readAllIngredients'])
     router.get('/:id', [IngredientsController, 'getIngredientById'])
-    router.post('/', [IngredientsController, 'addIngredient'])
-    router.delete('/:id', [IngredientsController, 'deleteIngredient'])
-    router.patch('/:id', [IngredientsController, 'updateIngredient'])
+    router
+      .post('/', [IngredientsController, 'addIngredient'])
+      .use(middleware.role({ roles: ['admin'] }))
+    router
+      .delete('/:id', [IngredientsController, 'deleteIngredient'])
+      .use(middleware.role({ roles: ['admin'] }))
+    router
+      .patch('/:id', [IngredientsController, 'updateIngredient'])
+      .use(middleware.role({ roles: ['admin'] }))
   })
   .prefix('/ingredients')
+  .use(middleware.auth({ guards: ['api'] }))
 
 // COCKTAILS
 router
   .group(() => {
     router.get('/', [CocktailsController, 'readAllCocktails'])
     router.get('/:id', [CocktailsController, 'getCocktailsById'])
-    router.post('/', [CocktailsController, 'addCocktail'])
-    router.delete('/:id', [CocktailsController, 'deleteCocktail'])
-    router.patch('/:id', [CocktailsController, 'updateCocktail'])
+    router
+      .post('/', [CocktailsController, 'addCocktail'])
+      .use(middleware.role({ roles: ['admin'] }))
+    router
+      .delete('/:id', [CocktailsController, 'deleteCocktail'])
+      .use(middleware.role({ roles: ['admin'] }))
+    router
+      .patch('/:id', [CocktailsController, 'updateCocktail'])
+      .use(middleware.role({ roles: ['admin'] }))
   })
   .prefix('/cocktails')
+  .use(middleware.auth({ guards: ['api'] }))
 
 router.get('/swagger', async () => {
   const generator = (AutoSwagger as any).default
@@ -55,3 +70,7 @@ router
     router.post('/logout', [AuthController, 'logout']).use(middleware.auth({ guards: ['api'] }))
   })
   .prefix('/auth')
+
+router
+  .patch('/users/:id/role', [UserRolesController, 'update'])
+  .use([middleware.auth({ guards: ['api'] }), middleware.role({ roles: ['admin'] })])

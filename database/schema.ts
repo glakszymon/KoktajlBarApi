@@ -88,7 +88,7 @@ export class IngredientSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'id', 'name', 'passwordHash', 'updatedAt'] as const
+  static $columns = ['createdAt', 'email', 'id', 'name', 'passwordHash', 'role', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -100,6 +100,8 @@ export class UserSchema extends BaseModel {
   declare name: string
   @column()
   declare passwordHash: string
+  @column()
+  declare role: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
