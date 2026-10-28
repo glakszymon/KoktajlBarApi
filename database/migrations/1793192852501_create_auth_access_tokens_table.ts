@@ -18,7 +18,6 @@ export default class extends BaseSchema {
       table.string('type').notNullable()
       table.string('name').nullable()
 
-      // Hash sekretu tokenu, a nie token przekazywany klientowi.
       table.string('hash').notNullable()
 
       table.text('abilities').notNullable()

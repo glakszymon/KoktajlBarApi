@@ -3,18 +3,18 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import db from '@adonisjs/lucid/services/db'
 
 import Cocktail from '#models/cocktail'
-import type User from '#models/user'
+import User from '#models/user'
 
 import { createUser } from '#tests/helpers/user'
 import { IngredientFactory } from '#tests/helpers/ingredient_factory.spec'
 
 test.group('Cocktails | tworzenie', (group) => {
-  let admin: User
+  let user: User
 
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   group.each.setup(async () => {
-    admin = await createUser('admin')
+    user = await createUser()
   })
 
   test('tworzy koktajl ze składnikami, ilościami i jednostkami', async ({ client, assert }) => {
@@ -23,7 +23,7 @@ test.group('Cocktails | tworzenie', (group) => {
     const response = await client
       .post('/cocktails')
       .withGuard('api')
-      .loginAs(admin)
+      .loginAs(user)
       .json({
         name: '  Mojito  ',
         category: '  Long Drink  ',
@@ -53,6 +53,9 @@ test.group('Cocktails | tworzenie', (group) => {
 
     assert.equal(cocktail.name, 'Mojito')
     assert.equal(cocktail.category, 'Long Drink')
+    assert.equal(cocktail.userId, user.id)
+    await cocktail.load('user')
+    assert.equal(cocktail.user.id, user.id)
 
     await cocktail.load('ingredients')
 
@@ -71,7 +74,7 @@ test.group('Cocktails | tworzenie', (group) => {
       { label: 'pusta lista składników', payload: { name: 'Mojito', ingredients: [] } },
     ])
     .run(async ({ client, assert }, { payload }) => {
-      const response = await client.post('/cocktails').withGuard('api').loginAs(admin).json(payload)
+      const response = await client.post('/cocktails').withGuard('api').loginAs(user).json(payload)
 
       response.assertStatus(201)
       response.assertBodyContains({ name: payload.name, ingredients: [] })
@@ -93,7 +96,7 @@ test.group('Cocktails | tworzenie', (group) => {
     const response = await client
       .post('/cocktails')
       .withGuard('api')
-      .loginAs(admin)
+      .loginAs(user)
       .json({
         name: 'Mojito',
         ingredients: [{ ingredient_id: ingredient.id }],
@@ -141,7 +144,7 @@ test.group('Cocktails | tworzenie', (group) => {
       const response = await client
         .post('/cocktails')
         .withGuard('api')
-        .loginAs(admin)
+        .loginAs(user)
         .unsafeJson({ name: 'Mojito', ...changes })
 
       response.assertStatus(422)
@@ -168,7 +171,7 @@ test.group('Cocktails | tworzenie', (group) => {
       const response = await client
         .post('/cocktails')
         .withGuard('api')
-        .loginAs(admin)
+        .loginAs(user)
         .unsafeJson({
           name: 'Mojito',
           ingredients: [{ ingredient_id: ingredient.id, ...changes }],
@@ -188,7 +191,7 @@ test.group('Cocktails | tworzenie', (group) => {
     const response = await client
       .post('/cocktails')
       .withGuard('api')
-      .loginAs(admin)
+      .loginAs(user)
       .json({
         name: 'Mojito',
         ingredients: [{ ingredient_id: ingredient.id }],
@@ -200,23 +203,31 @@ test.group('Cocktails | tworzenie', (group) => {
     assert.lengthOf(await Cocktail.all(), 0)
   })
 
-  test('wymaga tokena administratora i nie zapisuje danych przy odmowie', async ({
-    client,
-    assert,
-  }) => {
-    const user = await createUser()
-
+  test('wymaga tokena i nie zapisuje danych przy odmowie', async ({ client, assert }) => {
     const anonymous = await client.post('/cocktails').json({ name: 'Mojito' })
     anonymous.assertStatus(401)
 
-    const forbidden = await client
-      .post('/cocktails')
-      .withGuard('api')
-      .loginAs(user)
-      .json({ name: 'Mojito' })
-
-    forbidden.assertStatus(403)
-
     assert.lengthOf(await Cocktail.all(), 0)
   })
+
+  test('przypisuje autora z tokena, ignorując właściciela przesłanego w body: {role}')
+    .with([{ role: 'user' as const }, { role: 'admin' as const }])
+    .run(async ({ client, assert }, { role }) => {
+      const author = role === 'user' ? user : await createUser('admin')
+      const other = await createUser()
+      const token = await User.accessTokens.create(author)
+
+      const response = await client
+        .post('/cocktails')
+        .bearerToken(token.value!.release())
+        .unsafeJson({ name: 'Mojito', userId: other.id, user_id: other.id })
+
+      response.assertStatus(201)
+
+      const body = response.body()
+      if (!('id' in body)) throw new Error('Brak ID utworzonego koktajlu')
+
+      const cocktail = await Cocktail.findOrFail(body.id)
+      assert.equal(cocktail.userId, author.id)
+    })
 })

@@ -2,6 +2,7 @@ import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 
 import User from '#models/user'
+import Cocktail from '#models/cocktail'
 
 import { createUser } from '#tests/helpers/user'
 import { IngredientFactory } from '#tests/helpers/ingredient_factory.spec'
@@ -9,17 +10,24 @@ import { IngredientFactory } from '#tests/helpers/ingredient_factory.spec'
 test.group('Auth | uprawnienia', (group) => {
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
+  test('katalog składników jest publiczny', async ({ client }) => {
+    const ingredient = await IngredientFactory.create()
+
+    const list = await client.get('/ingredients')
+    list.assertStatus(200)
+
+    const details = await client.get(`/ingredients/${ingredient.id}`)
+    details.assertStatus(200)
+    details.assertBodyContains({ id: ingredient.id, name: ingredient.name })
+  })
+
   test('wymaga tokena na chronionych trasach', async ({ client }) => {
     const requests = [
       client.get('/auth/me'),
       client.post('/auth/logout'),
-      client.get('/ingredients'),
-      client.get('/ingredients/1'),
       client.post('/ingredients'),
       client.patch('/ingredients/1'),
       client.delete('/ingredients/1'),
-      client.get('/cocktails'),
-      client.get('/cocktails/1'),
       client.post('/cocktails'),
       client.patch('/cocktails/1'),
       client.delete('/cocktails/1'),
@@ -32,17 +40,19 @@ test.group('Auth | uprawnienia', (group) => {
     }
   })
 
-  test('user nie może wykonywać operacji administracyjnych', async ({ client, assert }) => {
+  test('właściciel koktajlu nie może zmieniać katalogu składników ani ról', async ({
+    client,
+    assert,
+  }) => {
     const user = await createUser()
     const ingredient = await IngredientFactory.create()
+    const cocktail = await Cocktail.create({ name: 'Mojito', userId: user.id })
+    await cocktail.related('ingredients').attach({ [ingredient.id]: { amount: 50, unit: 'ml' } })
 
     const requests = [
       client.post('/ingredients').json({ name: 'Nowy składnik' }),
       client.patch(`/ingredients/${ingredient.id}`).json({ name: 'Zmieniony składnik' }),
       client.delete(`/ingredients/${ingredient.id}`),
-      client.post('/cocktails').json({ name: 'Nowy koktajl' }),
-      client.patch('/cocktails/1').json({ name: 'Zmieniony koktajl' }),
-      client.delete('/cocktails/1'),
       client.patch(`/users/${user.id}/role`).json({ role: 'admin' }),
     ]
 
@@ -59,6 +69,9 @@ test.group('Auth | uprawnienia', (group) => {
 
     assert.equal(ingredient.name, originalName)
     assert.equal(user.role, 'user')
+    await cocktail.load('ingredients')
+    assert.lengthOf(cocktail.ingredients, 1)
+    assert.equal(cocktail.ingredients[0].$extras.pivot_amount, 50)
   })
 
   test('admin zmienia rolę innego użytkownika i jego dostęp z istniejącym tokenem', async ({

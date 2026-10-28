@@ -10,11 +10,13 @@ import { IngredientFactory } from '#tests/helpers/ingredient_factory.spec'
 
 test.group('Cocktails | usuwanie', (group) => {
   let admin: User
+  let owner: User
 
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   group.each.setup(async () => {
     admin = await createUser('admin')
+    owner = await createUser()
   })
 
   test('usuwa koktajl i jego powiązania, zachowując składniki i inny koktajl', async ({
@@ -22,8 +24,8 @@ test.group('Cocktails | usuwanie', (group) => {
     assert,
   }) => {
     const [cocktail, other] = await Cocktail.createMany([
-      { name: 'Mojito' },
-      { name: 'Inny koktajl' },
+      { name: 'Mojito', userId: owner.id },
+      { name: 'Inny koktajl', userId: owner.id },
     ])
     const ingredients = await IngredientFactory.createMany(2)
 
@@ -64,17 +66,24 @@ test.group('Cocktails | usuwanie', (group) => {
     repeated.assertStatus(404)
   })
 
-  test('usuwa koktajl bez składników', async ({ client, assert }) => {
-    const cocktail = await Cocktail.create({ name: 'Mojito' })
+  test('właściciel usuwa własny koktajl i powiązania, zachowując składnik', async ({
+    client,
+    assert,
+  }) => {
+    const cocktail = await Cocktail.create({ name: 'Mojito', userId: owner.id })
+    const ingredient = await IngredientFactory.create()
+    await cocktail.related('ingredients').attach({ [ingredient.id]: { amount: 50, unit: 'ml' } })
 
     const response = await client
       .delete(`/cocktails/${cocktail.id}`)
       .withGuard('api')
-      .loginAs(admin)
+      .loginAs(owner)
 
     response.assertStatus(200)
 
     assert.isNull(await Cocktail.find(cocktail.id))
+    assert.lengthOf(await db.from('cocktail_ingredients').where('cocktail_id', cocktail.id), 0)
+    await ingredient.refresh()
   })
 
   test('odrzuca niepoprawne ID: {id}')
@@ -87,7 +96,7 @@ test.group('Cocktails | usuwanie', (group) => {
     })
 
   test('zwraca 404 dla nieistniejącego koktajlu', async ({ client }) => {
-    const cocktail = await Cocktail.create({ name: 'Mojito' })
+    const cocktail = await Cocktail.create({ name: 'Mojito', userId: owner.id })
     await cocktail.delete()
 
     const response = await client
@@ -98,12 +107,17 @@ test.group('Cocktails | usuwanie', (group) => {
     response.assertStatus(404)
   })
 
-  test('nie usuwa koktajlu ani relacji bez tokena administratora', async ({ client, assert }) => {
+  test('nie usuwa koktajlu ani relacji bez tokena lub jako obcy użytkownik', async ({
+    client,
+    assert,
+  }) => {
     const user = await createUser()
-    const cocktail = await Cocktail.create({ name: 'Mojito' })
+    const cocktail = await Cocktail.create({ name: 'Mojito', userId: owner.id })
     const ingredient = await IngredientFactory.create()
 
-    await cocktail.related('ingredients').attach([ingredient.id])
+    await cocktail.related('ingredients').attach({ [ingredient.id]: { amount: 50, unit: 'ml' } })
+    await cocktail.refresh()
+    const original = cocktail.serialize()
 
     const anonymous = await client.delete(`/cocktails/${cocktail.id}`)
     anonymous.assertStatus(401)
@@ -117,7 +131,11 @@ test.group('Cocktails | usuwanie', (group) => {
 
     await cocktail.refresh()
 
-    assert.equal(cocktail.name, 'Mojito')
-    assert.lengthOf(await cocktail.related('ingredients').query(), 1)
+    assert.deepEqual(cocktail.serialize(), original)
+    await cocktail.load('ingredients')
+    assert.lengthOf(cocktail.ingredients, 1)
+    assert.equal(cocktail.ingredients[0].id, ingredient.id)
+    assert.equal(cocktail.ingredients[0].$extras.pivot_amount, 50)
+    assert.equal(cocktail.ingredients[0].$extras.pivot_unit, 'ml')
   })
 })

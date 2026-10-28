@@ -53,22 +53,26 @@ export default class CocktailsService {
     return query
   }
 
-  public async addRecord(data: {
-    name: string
-    category?: string
-    recipe?: string
-    ingredients?: Array<{
-      ingredient_id: number
-      amount?: number
-      unit?: string
-    }>
-  }) {
+  public async addRecord(
+    userId: number,
+    data: {
+      name: string
+      category?: string
+      recipe?: string
+      ingredients?: Array<{
+        ingredient_id: number
+        amount?: number
+        unit?: string
+      }>
+    }
+  ) {
     return await db.transaction(async (trx) => {
       const cocktail = await Cocktail.create(
         {
           name: data.name,
           category: data.category,
           recipe: data.recipe,
+          userId,
         },
         { client: trx }
       )

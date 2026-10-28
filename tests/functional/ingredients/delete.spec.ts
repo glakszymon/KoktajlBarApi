@@ -73,7 +73,7 @@ test.group('Ingredients | usuwanie', (group) => {
     assert,
   }) => {
     const ingredient = await IngredientFactory.create()
-    const cocktail = await Cocktail.create({ name: 'Mojito' })
+    const cocktail = await Cocktail.create({ name: 'Mojito', userId: admin.id })
 
     await cocktail.related('ingredients').attach({ [ingredient.id]: { amount: 50, unit: 'ml' } })
 

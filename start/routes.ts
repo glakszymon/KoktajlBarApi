@@ -21,34 +21,36 @@ router
     router.get('/:id', [IngredientsController, 'getIngredientById'])
     router
       .post('/', [IngredientsController, 'addIngredient'])
+      .use(middleware.auth({ guards: ['api'] }))
       .use(middleware.role({ roles: ['admin'] }))
     router
       .delete('/:id', [IngredientsController, 'deleteIngredient'])
+      .use(middleware.auth({ guards: ['api'] }))
       .use(middleware.role({ roles: ['admin'] }))
     router
       .patch('/:id', [IngredientsController, 'updateIngredient'])
+      .use(middleware.auth({ guards: ['api'] }))
       .use(middleware.role({ roles: ['admin'] }))
   })
   .prefix('/ingredients')
-  .use(middleware.auth({ guards: ['api'] }))
 
 // COCKTAILS
 router
   .group(() => {
     router.get('/', [CocktailsController, 'readAllCocktails'])
     router.get('/:id', [CocktailsController, 'getCocktailsById'])
-    router
-      .post('/', [CocktailsController, 'addCocktail'])
-      .use(middleware.role({ roles: ['admin'] }))
+    router.post('/', [CocktailsController, 'addCocktail']).use(middleware.auth({ guards: ['api'] }))
+    // .use(middleware.role({ roles: ['admin'] }))
     router
       .delete('/:id', [CocktailsController, 'deleteCocktail'])
-      .use(middleware.role({ roles: ['admin'] }))
+      .use(middleware.auth({ guards: ['api'] }))
+    // .use(middleware.role({ roles: ['admin'] }))
     router
       .patch('/:id', [CocktailsController, 'updateCocktail'])
-      .use(middleware.role({ roles: ['admin'] }))
+      .use(middleware.auth({ guards: ['api'] }))
+    // .use(middleware.role({ roles: ['admin'] }))
   })
   .prefix('/cocktails')
-  .use(middleware.auth({ guards: ['api'] }))
 
 router.get('/swagger', async () => {
   const generator = (AutoSwagger as any).default

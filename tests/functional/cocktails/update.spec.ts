@@ -9,15 +9,18 @@ import { IngredientFactory } from '#tests/helpers/ingredient_factory.spec'
 
 test.group('Cocktails | aktualizacja', (group) => {
   let admin: User
+  let owner: User
 
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   group.each.setup(async () => {
     admin = await createUser('admin')
+    owner = await createUser()
   })
 
   test('zmienia pola koktajlu i zastępuje listę składników', async ({ client, assert }) => {
     const cocktail = await Cocktail.create({
+      userId: owner.id,
       name: 'Stara nazwa',
       category: 'Old',
       recipe: 'Stary przepis',
@@ -87,6 +90,7 @@ test.group('Cocktails | aktualizacja', (group) => {
     ])
     .run(async ({ client, assert }, { changes }) => {
       const cocktail = await Cocktail.create({
+        userId: owner.id,
         name: 'Mojito',
         category: 'Long Drink',
         recipe: 'Wymieszaj.',
@@ -129,8 +133,8 @@ test.group('Cocktails | aktualizacja', (group) => {
     assert,
   }) => {
     const [cocktail, other] = await Cocktail.createMany([
-      { name: 'Mojito' },
-      { name: 'Inny koktajl' },
+      { name: 'Mojito', userId: owner.id },
+      { name: 'Inny koktajl', userId: owner.id },
     ])
 
     const ingredient = await IngredientFactory.create()
@@ -163,7 +167,7 @@ test.group('Cocktails | aktualizacja', (group) => {
       { field: 'ingredients', changes: { ingredients: 'abc' } },
     ])
     .run(async ({ client, assert }, { changes, field }) => {
-      const cocktail = await Cocktail.create({ name: 'Mojito' })
+      const cocktail = await Cocktail.create({ name: 'Mojito', userId: owner.id })
 
       await cocktail.refresh()
       const original = cocktail.serialize()
@@ -203,7 +207,7 @@ test.group('Cocktails | aktualizacja', (group) => {
       },
     ])
     .run(async ({ client, assert }, { missing, changes, field }) => {
-      const cocktail = await Cocktail.create({ name: 'Mojito' })
+      const cocktail = await Cocktail.create({ name: 'Mojito', userId: owner.id })
       const [original, candidate] = await IngredientFactory.createMany(2)
 
       await cocktail.related('ingredients').attach({ [original.id]: { amount: 50, unit: 'ml' } })
@@ -249,7 +253,7 @@ test.group('Cocktails | aktualizacja', (group) => {
     })
 
   test('zwraca 404 dla nieistniejącego koktajlu', async ({ client }) => {
-    const cocktail = await Cocktail.create({ name: 'Mojito' })
+    const cocktail = await Cocktail.create({ name: 'Mojito', userId: owner.id })
 
     await cocktail.delete()
 
@@ -262,16 +266,21 @@ test.group('Cocktails | aktualizacja', (group) => {
     response.assertStatus(404)
   })
 
-  test('wymaga administratora i zachowuje dane przy odmowie', async ({ client, assert }) => {
+  test('odmawia edycji osobie niezalogowanej i obcemu użytkownikowi bez zmiany danych', async ({
+    client,
+    assert,
+  }) => {
     const user = await createUser()
 
-    const cocktail = await Cocktail.create({ name: 'Mojito' })
+    const cocktail = await Cocktail.create({ name: 'Mojito', userId: owner.id })
     const ingredient = await IngredientFactory.create()
-    await cocktail.related('ingredients').attach([ingredient.id])
+    await cocktail.related('ingredients').attach({ [ingredient.id]: { amount: 50, unit: 'ml' } })
+    await cocktail.refresh()
+    const original = cocktail.serialize()
 
     const anonymous = await client
       .patch(`/cocktails/${cocktail.id}`)
-      .json({ name: 'Nowa nazwa', ingredients: [] })
+      .unsafeJson({ name: 'Nowa nazwa', ingredients: [], userId: user.id, user_id: user.id })
 
     anonymous.assertStatus(401)
 
@@ -279,13 +288,66 @@ test.group('Cocktails | aktualizacja', (group) => {
       .patch(`/cocktails/${cocktail.id}`)
       .withGuard('api')
       .loginAs(user)
-      .json({ name: 'Nowa nazwa', ingredients: [] })
+      .unsafeJson({ name: 'Nowa nazwa', ingredients: [], userId: user.id, user_id: user.id })
 
     forbidden.assertStatus(403)
 
     await cocktail.refresh()
 
-    assert.equal(cocktail.name, 'Mojito')
-    assert.lengthOf(await cocktail.related('ingredients').query(), 1)
+    assert.deepEqual(cocktail.serialize(), original)
+    await cocktail.load('ingredients')
+    assert.lengthOf(cocktail.ingredients, 1)
+    assert.equal(cocktail.ingredients[0].id, ingredient.id)
+    assert.equal(cocktail.ingredients[0].$extras.pivot_amount, 50)
+    assert.equal(cocktail.ingredients[0].$extras.pivot_unit, 'ml')
   })
+
+  test('właściciel lub administrator zmienia recepturę bez zmiany katalogu i autora: {actor}')
+    .with([{ actor: 'owner' }, { actor: 'admin' }])
+    .run(async ({ client, assert }, { actor }) => {
+      const cocktail = await Cocktail.create({ name: 'Mojito', userId: owner.id })
+      const other = await Cocktail.create({ name: 'Inny koktajl', userId: admin.id })
+      const [ingredient, added] = await IngredientFactory.createMany(2)
+      await ingredient.refresh()
+      await added.refresh()
+      const originalIngredient = ingredient.serialize()
+      const originalAdded = added.serialize()
+      await cocktail.related('ingredients').attach({ [ingredient.id]: { amount: 50, unit: 'ml' } })
+      await other.related('ingredients').attach({ [ingredient.id]: { amount: 20, unit: 'ml' } })
+
+      const response = await client
+        .patch(`/cocktails/${cocktail.id}`)
+        .withGuard('api')
+        .loginAs(actor === 'owner' ? owner : admin)
+        .unsafeJson({
+          name: 'Nowa nazwa',
+          userId: admin.id,
+          user_id: admin.id,
+          ingredients: [
+            { ingredient_id: ingredient.id, amount: 75, unit: 'ml', name: 'Podmieniona nazwa' },
+            { ingredient_id: added.id, amount: 2, unit: 'szt.' },
+          ],
+        })
+
+      response.assertStatus(200)
+      response.assertBodyContains({
+        name: 'Nowa nazwa',
+        ingredients: [
+          { id: ingredient.id, amount: 75, unit: 'ml' },
+          { id: added.id, amount: 2, unit: 'szt.' },
+        ],
+      })
+
+      await cocktail.refresh()
+      assert.equal(cocktail.userId, owner.id)
+      await ingredient.refresh()
+      await added.refresh()
+      assert.deepEqual(ingredient.serialize(), originalIngredient)
+      assert.deepEqual(added.serialize(), originalAdded)
+      await other.load('ingredients')
+      assert.lengthOf(other.ingredients, 1)
+      assert.equal(other.ingredients[0].id, ingredient.id)
+      assert.equal(other.ingredients[0].$extras.pivot_amount, 20)
+      assert.equal(other.ingredients[0].$extras.pivot_unit, 'ml')
+    })
 })

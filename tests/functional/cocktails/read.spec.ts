@@ -37,6 +37,7 @@ test.group('Cocktails | odczyt', (group) => {
 
   test('odczytuje koktajl wraz z ilością i jednostką składnika', async ({ client }) => {
     const cocktail = await Cocktail.create({
+      userId: user.id,
       name: 'Mojito',
       category: 'Long Drink',
       recipe: 'Wymieszaj.',
@@ -58,7 +59,7 @@ test.group('Cocktails | odczyt', (group) => {
   })
 
   test('zwraca null dla opcjonalnych pól i pustą listę składników', async ({ client }) => {
-    const cocktail = await Cocktail.create({ name: 'Mojito' })
+    const cocktail = await Cocktail.create({ name: 'Mojito', userId: user.id })
 
     const response = await client.get(`/cocktails/${cocktail.id}`).withGuard('api').loginAs(user)
 
@@ -67,7 +68,7 @@ test.group('Cocktails | odczyt', (group) => {
   })
 
   test('zwraca 404 dla nieistniejącego koktajlu', async ({ client }) => {
-    const cocktail = await Cocktail.create({ name: 'Mojito' })
+    const cocktail = await Cocktail.create({ name: 'Mojito', userId: user.id })
     await cocktail.delete()
 
     const response = await client.get(`/cocktails/${cocktail.id}`).withGuard('api').loginAs(user)
@@ -97,7 +98,7 @@ test.group('Cocktails | odczyt', (group) => {
     assert,
   }) => {
     const cocktails = await Cocktail.createMany(
-      Array.from({ length: 11 }, (_, i) => ({ name: `Koktajl ${i}` }))
+      Array.from({ length: 11 }, (_, i) => ({ name: `Koktajl ${i}`, userId: user.id }))
     )
 
     const first = await client.get('/cocktails').withGuard('api').loginAs(user)
@@ -127,7 +128,9 @@ test.group('Cocktails | odczyt', (group) => {
       { sortOrder: 'desc', expected: ['Charlie', 'Bravo', 'Alpha'] },
     ])
     .run(async ({ client, assert }, { sortOrder, expected }) => {
-      await Cocktail.createMany(['Bravo', 'Charlie', 'Alpha'].map((name) => ({ name })))
+      await Cocktail.createMany(
+        ['Bravo', 'Charlie', 'Alpha'].map((name) => ({ name, userId: user.id }))
+      )
 
       const response = await client
         .get('/cocktails')
@@ -150,10 +153,10 @@ test.group('Cocktails | odczyt', (group) => {
       const nonAlcoholic = await IngredientFactory.merge({ alcohol: false }).create()
 
       const [strong, virgin, mixed] = await Cocktail.createMany([
-        { name: 'Strong' },
-        { name: 'Virgin' },
-        { name: 'Mixed' },
-        { name: 'Empty' },
+        { name: 'Strong', userId: user.id },
+        { name: 'Virgin', userId: user.id },
+        { name: 'Mixed', userId: user.id },
+        { name: 'Empty', userId: user.id },
       ])
 
       await strong.related('ingredients').attach([alcoholic.id])
@@ -178,11 +181,11 @@ test.group('Cocktails | odczyt', (group) => {
     const ingredient = await IngredientFactory.merge({ alcohol: true }).create()
 
     const cocktails = await Cocktail.createMany([
-      { name: 'Alpha', category: 'Long Drink' },
-      { name: 'Bravo', category: 'Long Drink' },
-      { name: 'Charlie', category: 'Long Drink' },
-      { name: 'Other', category: 'Short Drink' },
-      { name: 'Empty', category: 'Long Drink' },
+      { name: 'Alpha', category: 'Long Drink', userId: user.id },
+      { name: 'Bravo', category: 'Long Drink', userId: user.id },
+      { name: 'Charlie', category: 'Long Drink', userId: user.id },
+      { name: 'Other', category: 'Short Drink', userId: user.id },
+      { name: 'Empty', category: 'Long Drink', userId: user.id },
     ])
 
     for (const cocktail of cocktails.slice(0, 4)) {
@@ -263,13 +266,15 @@ test.group('Cocktails | odczyt', (group) => {
       response.assertBodyContains({ errors: [{ field }] })
     })
 
-  test('odczyt listy i szczegółów wymaga tokena', async ({ client }) => {
-    const cocktail = await Cocktail.create({ name: 'Mojito' })
+  test('udostępnia listę i szczegóły bez tokena', async ({ client }) => {
+    const cocktail = await Cocktail.create({ name: 'Mojito', userId: user.id })
 
     const list = await client.get('/cocktails')
-    list.assertStatus(401)
+    list.assertStatus(200)
+    list.assertBodyContains({ data: [{ id: cocktail.id }] })
 
     const details = await client.get(`/cocktails/${cocktail.id}`)
-    details.assertStatus(401)
+    details.assertStatus(200)
+    details.assertBodyContains({ id: cocktail.id, name: 'Mojito' })
   })
 })

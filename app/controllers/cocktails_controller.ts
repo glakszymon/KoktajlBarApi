@@ -9,6 +9,7 @@ import {
   updateCocktailValidator,
 } from '#validators/cocktail'
 import { paginationCocktailValidator } from '#validators/pagination'
+import Cocktail from '#models/cocktail'
 
 export default class CocktailsController {
   /**
@@ -77,11 +78,13 @@ export default class CocktailsController {
    * @responseBody 201 - <Cocktail>.with(ingredients) - Koktajl został pomyślnie utworzony
    * @responseBody 422 - Nieprawidłowe dane koktajlu lub nieistniejące ID składnika
    */
-  async addCocktail({ request, response }: HttpContext) {
+  async addCocktail({ request, response, auth }: HttpContext) {
+    const user = auth.use('api').getUserOrFail()
+
     const data = await request.validateUsing(addCocktailValidator)
     const service = new CocktailsService()
 
-    const rec = await service.addRecord({
+    const rec = await service.addRecord(user.id, {
       name: data.name,
       category: data.category ?? undefined,
       recipe: data.recipe ?? undefined,
@@ -100,8 +103,21 @@ export default class CocktailsController {
    * @responseBody 404 - Nie znaleziono koktajlu o podanym ID
    * @responseBody 422 - Nieprawidłowe ID koktajlu
    */
-  async deleteCocktail({ params, response }: HttpContext) {
+  async deleteCocktail({ params, response, auth }: HttpContext) {
+    const user = auth.use('api').getUserOrFail()
+
     const data = await cocktailIdValidator.validate(params)
+
+    const cocktail = await Cocktail.findOrFail(data.id)
+
+    const isOwner = cocktail.userId === user.id
+    const isAdmin = user.role === 'admin'
+
+    if (!isOwner && !isAdmin) {
+      return response.forbidden({
+        message: 'Możesz usuwać tylko własne koktajle.',
+      })
+    }
 
     const service = new CocktailsService()
 
@@ -120,8 +136,21 @@ export default class CocktailsController {
    * @responseBody 404 - Nie znaleziono koktajlu o podanym ID
    * @responseBody 422 - Nieprawidłowe ID koktajlu, dane aktualizacji lub nieistniejące ID składnika
    */
-  async updateCocktail({ params, request, response }: HttpContext) {
+  async updateCocktail({ params, request, response, auth }: HttpContext) {
+    const user = auth.use('api').getUserOrFail()
+
     const { id } = await cocktailIdValidator.validate(params)
+    const cocktail = await Cocktail.findOrFail(id)
+
+    const isOwner = cocktail.userId === user.id
+    const isAdmin = user.role === 'admin'
+
+    if (!isOwner && !isAdmin) {
+      return response.forbidden({
+        message: 'Możesz edytować tylko własne koktajle.',
+      })
+    }
+
     const data = await request.validateUsing(updateCocktailValidator)
 
     const service = new CocktailsService()
