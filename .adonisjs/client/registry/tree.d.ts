@@ -18,6 +18,8 @@ export interface ApiDefinition {
   }
   comments: {
     addComment: typeof routes['comments.add_comment']
+    getAllCommentsAboutCocktail: typeof routes['comments.get_all_comments_about_cocktail']
+    getCommentById: typeof routes['comments.get_comment_by_id']
   }
   auth: {
     register: typeof routes['auth.register']

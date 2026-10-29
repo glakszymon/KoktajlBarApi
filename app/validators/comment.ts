@@ -6,12 +6,11 @@ export const addCommentValidator = vine.compile(
       cocktailId: vine.number().positive().withoutDecimals(),
     }),
 
-    rating: vine.number().withoutDecimals().min(1).max(5),
+    rating: vine.number({ strict: true }).withoutDecimals().min(1).max(5),
 
-    content: vine.string().trim().minLength(1).maxLength(500).nullable().optional(),
+    content: vine.string().regex(/\S/).trim().minLength(1).maxLength(500).nullable().optional(),
   })
 )
-
 export const listCommentsValidator = vine.compile(
   vine.object({
     params: vine.object({
@@ -52,7 +51,7 @@ export const updateCommentValidator = vine.compile(
       id: vine.number().positive().withoutDecimals(),
     }),
 
-    rating: vine.number().withoutDecimals().min(1).max(5).optional(),
+    rating: vine.number({ strict: true }).withoutDecimals().min(1).max(5).optional(),
 
     content: vine.string().trim().minLength(1).maxLength(500).nullable().optional(),
   })

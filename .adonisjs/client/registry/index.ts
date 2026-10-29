@@ -72,6 +72,18 @@ const routes = {
     tokens: [{"old":"/cocktails/:cocktailId/comment","type":0,"val":"cocktails","end":""},{"old":"/cocktails/:cocktailId/comment","type":1,"val":"cocktailId","end":""},{"old":"/cocktails/:cocktailId/comment","type":0,"val":"comment","end":""}],
     types: placeholder as Registry['comments.add_comment']['types'],
   },
+  'comments.get_all_comments_about_cocktail': {
+    methods: ["GET","HEAD"],
+    pattern: '/cocktails/:cocktailId/comments',
+    tokens: [{"old":"/cocktails/:cocktailId/comments","type":0,"val":"cocktails","end":""},{"old":"/cocktails/:cocktailId/comments","type":1,"val":"cocktailId","end":""},{"old":"/cocktails/:cocktailId/comments","type":0,"val":"comments","end":""}],
+    types: placeholder as Registry['comments.get_all_comments_about_cocktail']['types'],
+  },
+  'comments.get_comment_by_id': {
+    methods: ["GET","HEAD"],
+    pattern: '/cocktails/:cocktailId/comments/:id',
+    tokens: [{"old":"/cocktails/:cocktailId/comments/:id","type":0,"val":"cocktails","end":""},{"old":"/cocktails/:cocktailId/comments/:id","type":1,"val":"cocktailId","end":""},{"old":"/cocktails/:cocktailId/comments/:id","type":0,"val":"comments","end":""},{"old":"/cocktails/:cocktailId/comments/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['comments.get_comment_by_id']['types'],
+  },
   'auth.register': {
     methods: ["POST"],
     pattern: '/auth/register',

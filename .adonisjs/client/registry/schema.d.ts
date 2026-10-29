@@ -131,12 +131,36 @@ export interface Registry {
     methods: ["POST"]
     pattern: '/cocktails/:cocktailId/comment'
     types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/comment').addCommentValidator)>>
+      paramsTuple: [ParamValue]
+      params: { cocktailId: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/comment').addCommentValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/comments_controller').default['addComment']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/comments_controller').default['addComment']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'comments.get_all_comments_about_cocktail': {
+    methods: ["GET","HEAD"]
+    pattern: '/cocktails/:cocktailId/comments'
+    types: {
       body: {}
       paramsTuple: [ParamValue]
       params: { cocktailId: ParamValue }
-      query: {}
-      response: unknown
-      errorResponse: unknown
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/comment').listCommentsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/comments_controller').default['getAllCommentsAboutCocktail']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/comments_controller').default['getAllCommentsAboutCocktail']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'comments.get_comment_by_id': {
+    methods: ["GET","HEAD"]
+    pattern: '/cocktails/:cocktailId/comments/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { cocktailId: ParamValue; id: ParamValue }
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/comment').commentIdValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/comments_controller').default['getCommentById']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/comments_controller').default['getCommentById']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'auth.register': {

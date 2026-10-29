@@ -15,6 +15,8 @@ export type ScannedRoutes = {
     'cocktails.delete_cocktail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cocktails.update_cocktail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'comments.add_comment': { paramsTuple: [ParamValue]; params: {'cocktailId': ParamValue} }
+    'comments.get_all_comments_about_cocktail': { paramsTuple: [ParamValue]; params: {'cocktailId': ParamValue} }
+    'comments.get_comment_by_id': { paramsTuple: [ParamValue,ParamValue]; params: {'cocktailId': ParamValue,'id': ParamValue} }
     'auth.register': { paramsTuple?: []; params?: {} }
     'auth.login': { paramsTuple?: []; params?: {} }
     'auth.me': { paramsTuple?: []; params?: {} }
@@ -26,6 +28,8 @@ export type ScannedRoutes = {
     'ingredients.get_ingredient_by_id': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cocktails.read_all_cocktails': { paramsTuple?: []; params?: {} }
     'cocktails.get_cocktails_by_id': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'comments.get_all_comments_about_cocktail': { paramsTuple: [ParamValue]; params: {'cocktailId': ParamValue} }
+    'comments.get_comment_by_id': { paramsTuple: [ParamValue,ParamValue]; params: {'cocktailId': ParamValue,'id': ParamValue} }
     'auth.me': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
@@ -33,6 +37,8 @@ export type ScannedRoutes = {
     'ingredients.get_ingredient_by_id': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cocktails.read_all_cocktails': { paramsTuple?: []; params?: {} }
     'cocktails.get_cocktails_by_id': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'comments.get_all_comments_about_cocktail': { paramsTuple: [ParamValue]; params: {'cocktailId': ParamValue} }
+    'comments.get_comment_by_id': { paramsTuple: [ParamValue,ParamValue]; params: {'cocktailId': ParamValue,'id': ParamValue} }
     'auth.me': { paramsTuple?: []; params?: {} }
   }
   POST: {
