@@ -38,9 +38,9 @@ cp .env.example .env
 
 ### 2. Konfiguracja bazy danych
 
-Do uruchomienia aplikacji potrzebna jest pusta baza MariaDB oraz użytkownik
-z uprawnieniami do migracji i operacji na danych. Parametry połączenia znajdują
-się w `.env`. Przykładowa konfiguracja:
+Do uruchomienia aplikacji potrzebna jest pusta baza MariaDB. Parametry połączenia znajdują
+się w `.env`. 
+Przykładowa konfiguracja:
 
 ```dotenv
 DB_HOST=127.0.0.1
@@ -78,38 +78,6 @@ konta. Przepisy obejmują różne kategorie, autorów i koktajle bezalkoholowe.
 Powyższe hasła są przeznaczone wyłącznie do lokalnego demo.
 Seeder jest dostępny w środowiskach `development` i `test`.
 
-### Sprawdzenie API w Swagger UI
-
-Swagger UI jest dostępny pod adresem http://localhost:3333/docs.
-Logowanie przez `POST /auth/login` z danymi konta demonstracyjnego zwraca token
-w polu `token.value`. Autoryzacja w Swagger UI odbywa się przez **Authorize**
-→ **BearerAuth**; pole przyjmuje sam token, bez prefiksu `Bearer`.
-
-Po autoryzacji dostępne są `GET /auth/me` oraz operacje tworzenia, edycji
-i usuwania wpisów zgodnie z uprawnieniami konta.
-
-Listy i szczegóły koktajli, składników oraz komentarzy są dostępne bez logowania.
-
-Przykładowe zapytania:
-
-```http
-GET /cocktails?page=2
-GET /cocktails?alcohol=false
-GET /cocktails?category=Sour&sortBy=name&sortOrder=asc
-GET /ingredients?page=2
-```
-
-### Logowanie przez curl
-
-```bash
-curl -X POST http://localhost:3333/auth/login \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{"email":"user@example.com","password":"Demo-password-12345!"}'
-```
-
-Chronione endpointy wymagają wartości `token.value` w nagłówku
-`Authorization: Bearer <token>`:
 
 ```bash
 TOKEN='TOKEN_Z_ODPOWIEDZI_LOGOWANIA'
