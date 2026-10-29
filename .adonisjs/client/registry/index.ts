@@ -84,6 +84,12 @@ const routes = {
     tokens: [{"old":"/cocktails/:cocktailId/comments/:id","type":0,"val":"cocktails","end":""},{"old":"/cocktails/:cocktailId/comments/:id","type":1,"val":"cocktailId","end":""},{"old":"/cocktails/:cocktailId/comments/:id","type":0,"val":"comments","end":""},{"old":"/cocktails/:cocktailId/comments/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['comments.get_comment_by_id']['types'],
   },
+  'comments.delete_comment': {
+    methods: ["DELETE"],
+    pattern: '/cocktails/:cocktailId/comments/:id',
+    tokens: [{"old":"/cocktails/:cocktailId/comments/:id","type":0,"val":"cocktails","end":""},{"old":"/cocktails/:cocktailId/comments/:id","type":1,"val":"cocktailId","end":""},{"old":"/cocktails/:cocktailId/comments/:id","type":0,"val":"comments","end":""},{"old":"/cocktails/:cocktailId/comments/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['comments.delete_comment']['types'],
+  },
   'auth.register': {
     methods: ["POST"],
     pattern: '/auth/register',

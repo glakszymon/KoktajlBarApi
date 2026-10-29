@@ -1,7 +1,11 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import { addCommentValidator, commentIdValidator, listCommentsValidator } from '#validators/comment'
+import {
+  addCommentValidator,
+  commentIdValidator,
+  deleteCommentValidator,
+  listCommentsValidator,
+} from '#validators/comment'
 import CommentsService from '#services/comments_service'
-
 
 export default class CommentsController {
   async addComment({ request, response, auth }: HttpContext) {
@@ -40,5 +44,17 @@ export default class CommentsController {
     })
 
     return response.ok(comments)
+  }
+
+  async deleteComment({ request, response, auth }: HttpContext) {
+    const user = auth.use('api').getUserOrFail()
+
+    const data = await request.validateUsing(deleteCommentValidator)
+
+    const service = new CommentsService()
+
+    const deletedComment = await service.deleteRecord(data.params.cocktailId, data.params.id, user)
+
+    return response.ok(deletedComment)
   }
 }

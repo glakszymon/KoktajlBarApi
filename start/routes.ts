@@ -55,6 +55,10 @@ router
 
     router.get('/:cocktailId/comments', [CommentsController, 'getAllCommentsAboutCocktail'])
     router.get('/:cocktailId/comments/:id', [CommentsController, 'getCommentById'])
+
+    router
+      .delete('/:cocktailId/comments/:id', [CommentsController, 'deleteComment'])
+      .use(middleware.auth({ guards: ['api'] }))
   })
   .prefix('/cocktails')
 

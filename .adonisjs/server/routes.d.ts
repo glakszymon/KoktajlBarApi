@@ -17,6 +17,7 @@ export type ScannedRoutes = {
     'comments.add_comment': { paramsTuple: [ParamValue]; params: {'cocktailId': ParamValue} }
     'comments.get_all_comments_about_cocktail': { paramsTuple: [ParamValue]; params: {'cocktailId': ParamValue} }
     'comments.get_comment_by_id': { paramsTuple: [ParamValue,ParamValue]; params: {'cocktailId': ParamValue,'id': ParamValue} }
+    'comments.delete_comment': { paramsTuple: [ParamValue,ParamValue]; params: {'cocktailId': ParamValue,'id': ParamValue} }
     'auth.register': { paramsTuple?: []; params?: {} }
     'auth.login': { paramsTuple?: []; params?: {} }
     'auth.me': { paramsTuple?: []; params?: {} }
@@ -52,6 +53,7 @@ export type ScannedRoutes = {
   DELETE: {
     'ingredients.delete_ingredient': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cocktails.delete_cocktail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'comments.delete_comment': { paramsTuple: [ParamValue,ParamValue]; params: {'cocktailId': ParamValue,'id': ParamValue} }
   }
   PATCH: {
     'ingredients.update_ingredient': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

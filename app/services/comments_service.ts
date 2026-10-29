@@ -1,6 +1,7 @@
 import Comment from '#models/comment'
 import Cocktail from '#models/cocktail'
 import db from '@adonisjs/lucid/services/db'
+import { Exception } from '@adonisjs/core/exceptions'
 
 export default class CommentsService {
   public async addRecord(
@@ -88,5 +89,53 @@ export default class CommentsService {
     })
 
     return result
+  }
+
+  public async deleteRecord(
+    cocktailId: number,
+    commentId: number,
+    actor: {
+      id: number
+      role: string
+    }
+  ) {
+    return db.transaction(async (trx) => {
+      // Ta sama kolejność blokowania co przy dodawaniu komentarza.
+      const cocktail = await Cocktail.query({ client: trx })
+        .where('id', cocktailId)
+        .forUpdate()
+        .firstOrFail()
+
+      // Komentarz musi należeć do koktajlu wskazanego w adresie.
+      const comment = await Comment.query({ client: trx })
+        .where('id', commentId)
+        .where('cocktail_id', cocktail.id)
+        .forUpdate()
+        .firstOrFail()
+
+      const isOwner = comment.userId === actor.id
+      const isAdmin = actor.role === 'admin'
+
+      if (!isOwner && !isAdmin) {
+        throw new Exception('Możesz usuwać tylko własne komentarze.', {
+          status: 403,
+          code: 'E_COMMENT_DELETE_FORBIDDEN',
+        })
+      }
+
+      await comment.delete()
+
+      const result = await trx
+        .from('comments')
+        .where('cocktail_id', cocktail.id)
+        .avg('rating as average')
+        .first()
+
+      cocktail.rating = result.average === null ? null : Number(result.average)
+
+      await cocktail.save()
+
+      return { id: commentId }
+    })
   }
 }

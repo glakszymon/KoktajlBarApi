@@ -163,6 +163,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/comments_controller').default['getCommentById']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'comments.delete_comment': {
+    methods: ["DELETE"]
+    pattern: '/cocktails/:cocktailId/comments/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/comment').deleteCommentValidator)>>
+      paramsTuple: [ParamValue, ParamValue]
+      params: { cocktailId: ParamValue; id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/comment').deleteCommentValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/comments_controller').default['deleteComment']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/comments_controller').default['deleteComment']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'auth.register': {
     methods: ["POST"]
     pattern: '/auth/register'

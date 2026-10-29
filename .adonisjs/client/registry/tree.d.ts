@@ -20,6 +20,7 @@ export interface ApiDefinition {
     addComment: typeof routes['comments.add_comment']
     getAllCommentsAboutCocktail: typeof routes['comments.get_all_comments_about_cocktail']
     getCommentById: typeof routes['comments.get_comment_by_id']
+    deleteComment: typeof routes['comments.delete_comment']
   }
   auth: {
     register: typeof routes['auth.register']
