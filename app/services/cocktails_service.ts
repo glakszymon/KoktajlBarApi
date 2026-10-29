@@ -27,6 +27,10 @@ export default class CocktailsService {
       ingredientQuery.pivotColumns(['amount', 'unit'])
     })
 
+    query.preload('comments', (commentQuery) => {
+      commentQuery.orderBy('id', 'desc')
+    })
+
     const allowedSortColumns = ['id', 'name', 'category', 'created', 'updated']
     const sortBy = allowedSortColumns.includes(filters.sortBy ?? '') ? filters.sortBy! : 'id'
     const order = filters.sortOrder === 'desc' ? 'desc' : 'asc'
@@ -48,7 +52,13 @@ export default class CocktailsService {
   }
 
   async getById(id: number) {
-    const query = await Cocktail.query().where('id', id).preload('ingredients').firstOrFail()
+    const query = await Cocktail.query()
+      .where('id', id)
+      .preload('ingredients')
+      .preload('comments', (commentQuery) => {
+        commentQuery.orderBy('id', 'desc')
+      })
+      .firstOrFail()
 
     return query
   }
