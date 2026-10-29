@@ -161,6 +161,10 @@ npm run typecheck
 npm run build
 ```
 
+## Diagram bazy danych
+
+![Diagram tabel i relacji bazy danych KoktajlBar API](diagramDB.png)
+
 ## Struktura projektu
 
 ```text
