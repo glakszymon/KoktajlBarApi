@@ -23,6 +23,7 @@ export type Schema = {
   exclusiveMinimum?: boolean
   minLength?: number
   maxLength?: number
+  pattern?: string
   example?: unknown
 }
 
@@ -312,6 +313,15 @@ export function normalizeOpenApi<T extends OpenApiDocument>(document: T): T {
   for (const [path, operations] of Object.entries(document.paths ?? {})) {
     for (const [method, operation] of Object.entries(operations)) {
       if (!['get', 'post', 'patch', 'delete'].includes(method)) continue
+      if (path === '/cocktails' && method === 'get') {
+        operation.description =
+          'Publiczna lista koktajli ze wszystkimi ich składnikami, komentarzami, userId autora i średnią rating (null przy braku ocen). ' +
+          'Filtry userId, category (dokładne dopasowanie), alcohol i ingredientIds można łączyć (AND). ' +
+          'ingredientIds wymaga wszystkich wymienionych składników i dopuszcza dodatkowe; powtórzenia ID są usuwane. ' +
+          'Pominięty filtr nie ogranicza wyników. Nieistniejący autor lub wymagany składnik daje 200 z pustą listą. ' +
+          'Niepoprawne parametry dają 422. Filtrowanie następuje przed paginacją; meta.total i linki stron uwzględniają filtry. ' +
+          'Przykład: /cocktails?userId=5&ingredientIds=2,5&alcohol=true&category=Long%20Drink&sortBy=name&sortOrder=asc&page=1&limit=10.'
+      }
       const examplesForOperation = operationExamples[`${method.toUpperCase()} ${path}`]
       for (const parameter of operation.parameters ?? []) {
         const schema = parameter.schema
@@ -329,6 +339,16 @@ export function normalizeOpenApi<T extends OpenApiDocument>(document: T): T {
               minimum: 1,
               example: parameter.name === 'page' ? 1 : 10,
               ...(parameter.name === 'limit' ? { maximum: 100 } : {}),
+            })
+          }
+          if (path === '/cocktails' && parameter.name === 'userId') {
+            Object.assign(schema, { type: 'integer', minimum: 1, example: 5 })
+          }
+          if (path === '/cocktails' && parameter.name === 'ingredientIds') {
+            Object.assign(schema, {
+              type: 'string',
+              example: '2,5',
+              pattern: '^\\s*[1-9]\\d*(,[1-9]\\d*){0,49}\\s*$',
             })
           }
           const choices = pagination?.[parameter.name]?.enum

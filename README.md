@@ -216,6 +216,48 @@ Administrator nie może zmienić własnej roli przez ten endpoint.
 Dokumentacja `/docs` i `/swagger` jest publiczna. Każdy endpoint oznaczony rolą
 wymaga poprawnego tokena Bearer.
 
+## Filtrowanie listy koktajli
+
+`GET /cocktails` jest publiczny i zwraca obiekt `{ "data": [...], "meta": {...} }`.
+Wszystkie parametry są opcjonalne:
+
+| Parametr | Znaczenie |
+| --- | --- |
+| `userId` | ID autora: dodatnia liczba całkowita. Dla własnych koktajli użyj `user.id` z `GET /auth/me`. |
+| `category` | Dokładne dopasowanie kategorii, np. `Long Drink`. |
+| `alcohol` | `true`: przynajmniej jeden składnik alkoholowy; `false`: brak składników alkoholowych, również koktajle bez składników. |
+| `ingredientIds` | Od 1 do 50 dodatnich całkowitych ID składników oddzielonych przecinkami, np. `2,5`. Koktajl musi zawierać **wszystkie** wskazane składniki (AND), ale może mieć dodatkowe. |
+| `page` | Dodatnia liczba całkowita, domyślnie `1`. |
+| `limit` | Liczba całkowita od `1` do `100`, domyślnie `10`. |
+| `sortBy` | `id`, `name`, `category`, `created` lub `updated`, domyślnie `id`. |
+| `sortOrder` | `asc` lub `desc`, domyślnie `asc`. |
+
+Filtry można łączyć znakiem `&`. Wynik musi spełniać **wszystkie podane warunki**.
+Pominięte filtry nie ograniczają wyników. Filtrowanie następuje przed paginacją;
+`meta.total` uwzględnia filtry, a linki do kolejnych stron zachowują filtry,
+limit i sortowanie. Każdy zwrócony koktajl zawiera wszystkie swoje składniki,
+także te niewymienione w `ingredientIds`.
+
+Przykłady:
+
+```http
+GET /cocktails?userId=5
+GET /cocktails?ingredientIds=2,5
+GET /cocktails?userId=5&ingredientIds=2,5&alcohol=true&category=Long%20Drink&sortBy=name&sortOrder=asc&page=1&limit=10
+```
+
+Ostatni przykład wybiera alkoholowe koktajle autora `5` z kategorii `Long Drink`,
+zawierające składnik `2` **i** składnik `5`, posortowane rosnąco po nazwie.
+ID składników dobierz z `GET /ingredients`. W Swagger UI wpisz w polu
+`ingredientIds` tekst `2,5`, bez nawiasów tablicy ani cudzysłowów.
+
+Powtórzenia w `ingredientIds` są usuwane: `2,5,2` działa jak `2,5`.
+Białe znaki na brzegach listy są usuwane, ale spacje wewnątrz, pusta wartość,
+zera, liczby ujemne, ułamki, puste elementy i ponad 50 ID są odrzucane (`422`).
+Niepoprawny `userId`, np. `abc`, `0` lub `1.5`, również daje `422`.
+Poprawne, lecz nieistniejące ID autora lub któregokolwiek wymaganego składnika
+zwraca `200` z pustą listą i `meta.total: 0`. Tak samo działa brak dopasowań.
+
 ## Komentarze i oceny
 
 Dodawanie używa ścieżki **`/comment` (liczba pojedyncza)**, a odczyt i usuwanie

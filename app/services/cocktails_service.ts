@@ -7,6 +7,8 @@ export default class CocktailsService {
     limit?: number
     category?: string
     alcohol?: boolean
+    userId?: number
+    ingredientIds?: number[]
     sortBy?: string
     sortOrder?: 'asc' | 'desc'
   }) {
@@ -19,6 +21,10 @@ export default class CocktailsService {
       query.where('category', filters.category)
     }
 
+    if (filters.userId !== undefined) {
+      query.where('user_id', filters.userId)
+    }
+
     if (filters.alcohol === true) {
       query.whereHas('ingredients', (ingredientQuery) => {
         ingredientQuery.where('alcohol', true)
@@ -26,6 +32,12 @@ export default class CocktailsService {
     } else if (filters.alcohol === false) {
       query.whereDoesntHave('ingredients', (ingredientQuery) => {
         ingredientQuery.where('alcohol', true)
+      })
+    }
+
+    for (const ingredientId of filters.ingredientIds ?? []) {
+      query.whereHas('ingredients', (ingredientQuery) => {
+        ingredientQuery.where('ingredients.id', ingredientId)
       })
     }
 
@@ -52,6 +64,10 @@ export default class CocktailsService {
       sortOrder: order,
       ...(filters.category !== undefined && { category: filters.category }),
       ...(filters.alcohol !== undefined && { alcohol: filters.alcohol }),
+      ...(filters.userId !== undefined && { userId: filters.userId }),
+      ...(filters.ingredientIds?.length && {
+        ingredientIds: filters.ingredientIds.join(','),
+      }),
     })
 
     return result

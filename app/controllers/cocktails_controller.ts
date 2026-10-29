@@ -15,11 +15,13 @@ export default class CocktailsController {
   /**
    * @readAllCocktails
    * @summary Pobierz listę koktajli
-   * @description Endpoint publiczny. Zwraca przefiltrowaną listę koktajli ze składnikami, komentarzami i userId autora oraz średnią rating (null przy braku ocen). Obsługuje paginację i sortowanie. Pole alcohol jest wyliczane ze składników.
+   * @description Endpoint publiczny. Zwraca przefiltrowaną listę koktajli ze wszystkimi ich składnikami, komentarzami i userId autora oraz średnią rating (null przy braku ocen). Filtry userId, category, alcohol i ingredientIds można łączyć (AND). ingredientIds wymaga wszystkich wymienionych składników, ale dopuszcza dodatkowe; powtórzenia ID są usuwane. Pominięty filtr nie ogranicza wyników. Nieistniejący autor lub składnik daje pustą listę (200). Filtrowanie odbywa się przed paginacją, a linki stron zachowują filtry i sortowanie. Pole alcohol jest wyliczane ze składników.
    * @paramQuery page - Numer strony, dodatnia liczba całkowita (domyślnie 1) - @type(integer) @example(1)
    * @paramQuery limit - Liczba elementów na stronie, od 1 do 100 (domyślnie 10) - @type(integer) @example(10)
    * @paramQuery category - Filtruj po kategorii koktajlu - @type(string)
    * @paramQuery alcohol - true: przynajmniej jeden składnik alkoholowy; false: brak alkoholowych składników, również koktajle bez składników - @type(boolean) @example(true)
+   * @paramQuery userId - ID autora koktajli, dodatnia liczba całkowita. Dla własnych koktajli użyj user.id z GET /auth/me - @type(integer) @example(5)
+   * @paramQuery ingredientIds - Od 1 do 50 dodatnich całkowitych ID składników oddzielonych przecinkami, np. 2,5. Wymaga składnika 2 i 5; może zawierać dodatkowe. Bez spacji wewnątrz listy; białe znaki na brzegach są usuwane. ID dobierz z GET /ingredients - @type(string) @example(2,5)
    * @paramQuery sortBy - Pole sortowania (domyślnie id) - @type(string) @enum(id,name,category,created,updated)
    * @paramQuery sortOrder - Kierunek sortowania (domyślnie asc) - @type(string) @enum(asc,desc)
    * @responseBody 200 - <Cocktail[]>.with(ingredients,comments).paginated() - Lista koktajli z metadanymi paginacji
@@ -33,21 +35,30 @@ export default class CocktailsController {
       limit: qs.limit !== undefined ? Number(qs.limit) : undefined,
       category: qs.category === undefined ? undefined : qs.category,
       alcohol: qs.alcohol === undefined ? undefined : qs.alcohol,
+      userId: qs.userId !== undefined ? Number(qs.userId) : undefined,
       sortBy: qs.sortBy === undefined ? undefined : qs.sortBy,
       sortOrder: qs.sortOrder === undefined ? undefined : qs.sortOrder,
+      ingredientIds: qs.ingredientIds,
     }
 
     const validatedData = await paginationCocktailValidator.validate(rawData)
 
     const service = new CocktailsService()
 
+    const ingredientIds =
+      validatedData.ingredientIds === undefined
+        ? undefined
+        : [...new Set(validatedData.ingredientIds.split(',').map(Number))]
+
     const cocktails = await service.getAll({
       page: validatedData.page,
       limit: validatedData.limit,
       category: validatedData.category,
       alcohol: validatedData.alcohol,
+      userId: validatedData.userId,
       sortBy: validatedData.sortBy,
       sortOrder: validatedData.sortOrder,
+      ingredientIds,
     })
 
     return response.ok(cocktails)

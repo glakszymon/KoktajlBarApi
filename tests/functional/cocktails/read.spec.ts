@@ -146,6 +146,57 @@ test.group('Cocktails | odczyt', (group) => {
       )
     })
 
+  test('filtruje po autorze bez tokena i pomija filtr, gdy nie podano userId', async ({
+    client,
+    assert,
+  }) => {
+    const otherAuthor = await createUser()
+    const [own, other, anotherOwn] = await Cocktail.createMany([
+      { name: 'Własny', userId: user.id },
+      { name: 'Innego autora', userId: otherAuthor.id },
+      { name: 'Kolejny własny', userId: user.id },
+    ])
+
+    const filtered = await client.get('/cocktails').qs({ userId: user.id })
+
+    filtered.assertStatus(200)
+    filtered.assertBodyContains({ meta: { total: 2 } })
+    assert.deepEqual(
+      readPage(filtered).data.map((item) => item.id),
+      [own.id, anotherOwn.id]
+    )
+
+    const all = await client.get('/cocktails')
+
+    all.assertStatus(200)
+    all.assertBodyContains({ meta: { total: 3 } })
+    assert.deepEqual(
+      readPage(all).data.map((item) => item.id),
+      [own.id, other.id, anotherOwn.id]
+    )
+  })
+
+  test('zwraca pustą listę dla autora bez koktajli: {label}')
+    .with([
+      { label: 'istniejący użytkownik', deleted: false },
+      { label: 'nieistniejący użytkownik', deleted: true },
+    ])
+    .run(async ({ client, assert }, { deleted }) => {
+      const author = await createUser()
+      const userId = author.id
+      if (deleted) {
+        await author.delete()
+      }
+      await Cocktail.create({ name: 'Innego autora', userId: user.id })
+
+      const response = await client.get('/cocktails').qs({ userId })
+
+      response.assertStatus(200)
+      response.assertBodyContains({ meta: { total: 0 } })
+      assert.deepEqual(readPage(response).data, [])
+      assert.isNull(readPage(response).meta.nextPageUrl)
+    })
+
   test('filtruje po alkoholowości całego koktajlu: {alcohol}')
     .with([{ alcohol: true }, { alcohol: false }])
     .run(async ({ client, assert }, { alcohol }) => {
@@ -186,11 +237,115 @@ test.group('Cocktails | odczyt', (group) => {
       })
     })
 
-  test('łączy kategorię, filtr, sortowanie i limit oraz zachowuje je w linkach', async ({
+  test('wymaga wszystkich wskazanych składników i zwraca także dodatkowe składniki', async ({
+    client,
+    assert,
+  }) => {
+    const first = await IngredientFactory.create()
+    const second = await IngredientFactory.create()
+    const extra = await IngredientFactory.create()
+    const [both, withExtra, onlyFirst, onlySecond, empty] = await Cocktail.createMany(
+      ['Oba', 'Z dodatkiem', 'Tylko pierwszy', 'Tylko drugi', 'Bez składników'].map((name) => ({
+        name,
+        userId: user.id,
+      }))
+    )
+    await both.related('ingredients').attach([first.id, second.id])
+    await withExtra.related('ingredients').attach([first.id, second.id, extra.id])
+    await onlyFirst.related('ingredients').attach([first.id])
+    await onlySecond.related('ingredients').attach([second.id])
+
+    const response = await client
+      .get('/cocktails')
+      .qs({ ingredientIds: `${first.id},${second.id}` })
+
+    response.assertStatus(200)
+    response.assertBodyContains({ meta: { total: 2 } })
+    const page = readPage(response)
+    assert.deepEqual(
+      page.data.map((item) => item.id),
+      [both.id, withExtra.id]
+    )
+    assert.sameMembers(
+      page.data[1].ingredients.map((item) => item.id),
+      [first.id, second.id, extra.id]
+    )
+
+    const unfiltered = await client.get('/cocktails')
+    unfiltered.assertStatus(200)
+    assert.deepEqual(
+      readPage(unfiltered).data.map((item) => item.id),
+      [both.id, withExtra.id, onlyFirst.id, onlySecond.id, empty.id]
+    )
+  })
+
+  test('obsługuje pojedynczy składnik, powtórzenia ID i białe znaki wokół listy', async ({
+    client,
+    assert,
+  }) => {
+    const ingredient = await IngredientFactory.create()
+    const cocktail = await Cocktail.create({ name: 'Pasujący', userId: user.id })
+    await cocktail.related('ingredients').attach([ingredient.id])
+    await Cocktail.create({ name: 'Bez składników', userId: user.id })
+
+    for (const ingredientIds of [String(ingredient.id), `  ${ingredient.id},${ingredient.id}  `]) {
+      const response = await client.get('/cocktails').qs({ ingredientIds })
+
+      response.assertStatus(200)
+      response.assertBodyContains({ meta: { total: 1 } })
+      assert.deepEqual(
+        readPage(response).data.map((item) => item.id),
+        [cocktail.id]
+      )
+    }
+  })
+
+  test('zwraca pustą listę, gdy jeden z wymaganych składników nie istnieje', async ({
+    client,
+    assert,
+  }) => {
+    const ingredient = await IngredientFactory.create()
+    const missing = await IngredientFactory.create()
+    await missing.delete()
+    const cocktail = await Cocktail.create({ name: 'Częściowe dopasowanie', userId: user.id })
+    await cocktail.related('ingredients').attach([ingredient.id])
+
+    const response = await client
+      .get('/cocktails')
+      .qs({ ingredientIds: `${ingredient.id},${missing.id}` })
+
+    response.assertStatus(200)
+    response.assertBodyContains({ meta: { total: 0 } })
+    assert.deepEqual(readPage(response).data, [])
+    assert.isNull(readPage(response).meta.nextPageUrl)
+  })
+
+  test('akceptuje graniczną liczbę 50 składników', async ({ client, assert }) => {
+    const response = await client.get('/cocktails').qs({
+      ingredientIds: Array.from({ length: 50 }, (_, index) => index + 1).join(','),
+    })
+
+    response.assertStatus(200)
+    assert.deepEqual(readPage(response).data, [])
+  })
+
+  test('łączy autora, składniki, kategorię, alkohol, sortowanie i limit oraz zachowuje je w linkach', async ({
     client,
     assert,
   }) => {
     const ingredient = await IngredientFactory.merge({ alcohol: true }).create()
+    const firstRequired = await IngredientFactory.merge({ alcohol: false }).create()
+    const secondRequired = await IngredientFactory.merge({ alcohol: false }).create()
+    const ingredientIds = `${firstRequired.id},${secondRequired.id}`
+    const otherAuthor = await createUser()
+    const otherCocktail = await Cocktail.create({
+      name: 'Zulu',
+      category: 'Long Drink',
+      userId: otherAuthor.id,
+    })
+    await otherCocktail
+      .related('ingredients')
+      .attach([ingredient.id, firstRequired.id, secondRequired.id])
 
     const cocktails = await Cocktail.createMany([
       { name: 'Alpha', category: 'Long Drink', userId: user.id },
@@ -198,15 +353,24 @@ test.group('Cocktails | odczyt', (group) => {
       { name: 'Charlie', category: 'Long Drink', userId: user.id },
       { name: 'Other', category: 'Short Drink', userId: user.id },
       { name: 'Empty', category: 'Long Drink', userId: user.id },
+      { name: 'Missing ingredient', category: 'Long Drink', userId: user.id },
     ])
 
     for (const cocktail of cocktails.slice(0, 4)) {
-      await cocktail.related('ingredients').attach({ [ingredient.id]: { amount: 50, unit: 'ml' } })
+      await cocktail.related('ingredients').attach({
+        [ingredient.id]: { amount: 50, unit: 'ml' },
+        [firstRequired.id]: {},
+        [secondRequired.id]: {},
+      })
     }
+    await cocktails[4].related('ingredients').attach([firstRequired.id, secondRequired.id])
+    await cocktails[5].related('ingredients').attach([ingredient.id, firstRequired.id])
 
     const response = await client.get('/cocktails').withGuard('api').loginAs(user).qs({
+      userId: user.id,
       category: 'Long Drink',
       alcohol: true,
+      ingredientIds,
       limit: 2,
       sortBy: 'name',
       sortOrder: 'desc',
@@ -228,8 +392,10 @@ test.group('Cocktails | odczyt', (group) => {
     assert.equal(next.pathname, '/cocktails')
 
     for (const [key, value] of Object.entries({
+      userId: String(user.id),
       category: 'Long Drink',
       alcohol: 'true',
+      ingredientIds,
       limit: '2',
       sortBy: 'name',
       sortOrder: 'desc',
@@ -241,6 +407,7 @@ test.group('Cocktails | odczyt', (group) => {
     const second = await client.get(`${next.pathname}${next.search}`).withGuard('api').loginAs(user)
 
     second.assertStatus(200)
+    second.assertBodyContains({ meta: { total: 3 } })
     assert.deepEqual(
       readPage(second).data.map((item) => item.id),
       [cocktails[0].id]
@@ -266,6 +433,26 @@ test.group('Cocktails | odczyt', (group) => {
       { field: 'sortBy', value: 'password' },
       { field: 'sortOrder', value: 'wrong' },
       { field: 'alcohol', value: 'wrong' },
+      { field: 'userId', value: 'abc' },
+      { field: 'userId', value: '0' },
+      { field: 'userId', value: '-1' },
+      { field: 'userId', value: '1.5' },
+      { field: 'userId', value: '' },
+      { field: 'ingredientIds', value: '' },
+      { field: 'ingredientIds', value: 'abc' },
+      { field: 'ingredientIds', value: '0' },
+      { field: 'ingredientIds', value: '-1' },
+      { field: 'ingredientIds', value: '1.5' },
+      { field: 'ingredientIds', value: '2,abc' },
+      { field: 'ingredientIds', value: '2,0' },
+      { field: 'ingredientIds', value: '2,,5' },
+      { field: 'ingredientIds', value: ',2' },
+      { field: 'ingredientIds', value: '2,' },
+      { field: 'ingredientIds', value: '2, 5' },
+      {
+        field: 'ingredientIds',
+        value: Array.from({ length: 51 }, (_, index) => index + 1).join(','),
+      },
     ])
     .run(async ({ client }, { field, value }) => {
       const response = await client
