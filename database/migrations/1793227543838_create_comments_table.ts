@@ -26,6 +26,9 @@ export default class extends BaseSchema {
       table.integer('rating').notNullable()
       table.text('content').nullable()
 
+      table.timestamp('created_at').nullable()
+      table.timestamp('updated_at').nullable()
+
       table.check('rating BETWEEN 1 AND 5')
     })
   }

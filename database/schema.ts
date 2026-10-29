@@ -65,7 +65,7 @@ export class CocktailIngredientSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column()
-  declare ingredientId: number | null
+  declare ingredientId: number
   @column()
   declare unit: string | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })

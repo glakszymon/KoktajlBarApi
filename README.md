@@ -67,14 +67,63 @@ node ace generate:key
 node ace migration:run
 ```
 
-### 6. Uruchom aplikację
+### 6. Dodaj dane demonstracyjne
+
+```bash
+node ace db:seed
+```
+
+Seeder działa w środowiskach `development` i `test`. W pustej bazie tworzy:
+
+- 2 konta: administratora i zwykłego użytkownika;
+- 20 składników, alkoholowych i bezalkoholowych — lista `/ingredients` ma
+  2 strony przy domyślnym limicie 10;
+- 18 koktajli różnych autorów i kategorii, ze składnikami, ilościami i jednostkami
+  — lista `/cocktails` ma 2 strony przy domyślnym limicie 10;
+- 10 komentarzy i ocen obu użytkowników, w tym samą ocenę bez treści.
+
+| Rola          | Email               | Hasło wyłącznie demonstracyjne |
+| ------------- | ------------------- | ------------------------------ |
+| Administrator | `admin@example.com` | `Demo-password-12345!`         |
+| Użytkownik    | `user@example.com`  | `Demo-password-12345!`         |
+
+Hasła te służą wyłącznie do lokalnego demo. W bazie są przechowywane jako hashe.
+Zaloguj się przez `POST /auth/login`, aby otrzymać token.
+
+Polecenie można uruchamiać wielokrotnie bez powielania danych. Seeder wyszukuje
+konta po emailu, składniki po nazwie, koktajle po nazwie i autorze, a komentarze
+po koktajlu, autorze i treści. Nie resetuje istniejących haseł, ról ani treści
+wpisów. Uzupełnia powiązania składników, przywraca ich demonstracyjne ilości
+i jednostki oraz przelicza średnie ze wszystkich ocen, także dodanych ręcznie.
+
+Przykłady do sprawdzenia po pierwszym seedowaniu pustej bazy:
+
+- `GET /ingredients?page=2` — druga strona składników;
+- `GET /cocktails?page=2` — druga strona koktajli;
+- `GET /cocktails?alcohol=false` — Virgin Mojito i Virgin Piña Colada;
+- Mojito ma średnią `rating: 4.5` z dwóch ocen;
+- Virgin Piña Colada nie ma komentarzy i zwraca `rating: null`.
+
+### 7. Uruchom aplikację
 
 ```bash
 npm run dev
 ```
 
-API jest dostępne pod http://localhost:3333. Migracje tworzą strukturę bazy;
-projekt nie zawiera jeszcze seedera danych demonstracyjnych ani gotowych kont.
+API jest dostępne pod http://localhost:3333.
+
+### Odtworzenie istniejącej bazy po uporządkowaniu migracji
+
+Migracje zawierają docelową strukturę: po jednym pliku tworzącym każdą z 6 tabel.
+Jeżeli masz bazę utworzoną na wcześniejszych migracjach, odtwórz ją poleceniem:
+
+```bash
+node ace migration:fresh --seed
+```
+
+Polecenie usuwa wszystkie tabele i dane z bazy wskazanej w `.env`, tworzy nową
+strukturę i dodaje dane demonstracyjne. Przy pierwszym uruchomieniu projektu
+na pustej bazie wystarczą kroki 5–6 powyżej.
 
 ## Dokumentacja API
 
@@ -85,16 +134,17 @@ Po uruchomieniu aplikacji:
 
 ### Pierwsze wywołanie w Swagger UI
 
-1. Otwórz `/docs` i wykonaj `POST /auth/register`, używając przykładu z dokumentacji
-   lub własnych danych. Rejestracja wymaga `password_confirmation` identycznego z hasłem.
-2. Wykonaj `POST /auth/login` z tym samym emailem i hasłem.
+1. Otwórz `/docs`. Po wykonaniu seedera możesz użyć jednego z kont demonstracyjnych
+   opisanych powyżej. Własne konto utworzysz przez `POST /auth/register`;
+   rejestracja wymaga `password_confirmation` identycznego z hasłem.
+2. Wykonaj `POST /auth/login` z emailem i hasłem wybranego konta.
 3. Skopiuj wartość `token.value` z odpowiedzi.
 4. Kliknij **Authorize**, w polu **BearerAuth** wklej **sam token, bez `Bearer`**,
    i zatwierdź. Swagger doda nagłówek `Authorization: Bearer <token>`.
 5. Wywołaj `GET /auth/me`, aby poznać swoje `user.id`. Możesz teraz utworzyć
    koktajl przez `POST /cocktails` i dodać ocenę przez `POST /cocktails/{cocktailId}/comment`.
    Listy koktajli, składników i komentarzy są dostępne również bez logowania;
-   w nowej bazie będą puste.
+   po wykonaniu seedera zawierają dane demonstracyjne.
 
 Przykłady w Swaggerze opisują format danych; nie tworzą kont ani rekordów w bazie.
 ID w przykładach koktajli zastąp ID istniejących składników z `GET /ingredients`.
@@ -163,7 +213,9 @@ Odpowiedzi rejestracji, logowania i `/auth/me` nie zawierają roli ani hasła.
 
 ### Pierwszy administrator w środowisku lokalnym
 
-Zarejestruj konto, a następnie w swojej lokalnej bazie MariaDB nadaj mu rolę:
+Po wykonaniu seedera możesz zalogować się jako `admin@example.com`.
+Jeśli pomijasz dane demonstracyjne, zarejestruj konto, a następnie w swojej
+lokalnej bazie MariaDB nadaj mu rolę:
 
 ```sql
 UPDATE users SET role = 'admin' WHERE email = 'jan@example.com';
