@@ -10,6 +10,7 @@ export default class UserRolesController {
    * @paramPath id - ID innego użytkownika, dodatnia liczba całkowita - @type(integer) @required @example(2)
    * @requestBody {"role":"admin"}
    * @responseBody 200 - Dane użytkownika wraz z nową rolą
+   * @responseBody 401 - Brak poprawnego tokena Bearer
    * @responseBody 403 - Brak roli admin lub próba zmiany własnej roli
    * @responseBody 404 - Nie znaleziono użytkownika
    * @responseBody 422 - Nieprawidłowe ID lub rola

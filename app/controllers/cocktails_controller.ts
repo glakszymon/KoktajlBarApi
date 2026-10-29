@@ -15,14 +15,14 @@ export default class CocktailsController {
   /**
    * @readAllCocktails
    * @summary Pobierz listę koktajli
-   * @description Zwraca przefiltrowaną listę koktajli z obsługą paginacji i sortowania.
+   * @description Endpoint publiczny. Zwraca przefiltrowaną listę koktajli ze składnikami, komentarzami i userId autora oraz średnią rating (null przy braku ocen). Obsługuje paginację i sortowanie. Pole alcohol jest wyliczane ze składników.
    * @paramQuery page - Numer strony, dodatnia liczba całkowita (domyślnie 1) - @type(integer) @example(1)
    * @paramQuery limit - Liczba elementów na stronie, od 1 do 100 (domyślnie 10) - @type(integer) @example(10)
    * @paramQuery category - Filtruj po kategorii koktajlu - @type(string)
-   * @paramQuery alcohol - Filtruj koktajle mające składnik o wskazanej zawartości alkoholu - @type(boolean) @example(true)
+   * @paramQuery alcohol - true: przynajmniej jeden składnik alkoholowy; false: brak alkoholowych składników, również koktajle bez składników - @type(boolean) @example(true)
    * @paramQuery sortBy - Pole sortowania (domyślnie id) - @type(string) @enum(id,name,category,created,updated)
    * @paramQuery sortOrder - Kierunek sortowania (domyślnie asc) - @type(string) @enum(asc,desc)
-   * @responseBody 200 - <Cocktail[]>.with(ingredients).paginated() - Lista koktajli z metadanymi paginacji
+   * @responseBody 200 - <Cocktail[]>.with(ingredients,comments).paginated() - Lista koktajli z metadanymi paginacji
    * @responseBody 422 - Nieprawidłowe parametry filtrowania, sortowania lub paginacji
    */
   async readAllCocktails({ request, response }: HttpContext) {
@@ -56,9 +56,9 @@ export default class CocktailsController {
   /**
    * @getCocktailsById
    * @summary Pobierz koktajl po ID
-   * @description Zwraca szczegółowe informacje o wybranym koktajlu wraz ze składnikami.
+   * @description Endpoint publiczny. Zwraca koktajl ze składnikami, komentarzami (id malejąco), userId autora, wyliczonym alcohol i średnią rating. ID autora można porównać z user.id odpowiedzi GET /auth/me.
    * @paramPath id - ID koktajlu, dodatnia liczba całkowita - @type(integer) @required @example(1)
-   * @responseBody 200 - <Cocktail>.with(ingredients) - Szczegóły koktajlu
+   * @responseBody 200 - <Cocktail>.with(ingredients,comments) - Szczegóły koktajlu
    * @responseBody 404 - Nie znaleziono koktajlu o podanym ID
    * @responseBody 422 - Nieprawidłowe ID koktajlu
    */
@@ -73,9 +73,10 @@ export default class CocktailsController {
   /**
    * @addCocktail
    * @summary Dodaj nowy koktajl
-   * @description Tworzy koktajl i zwraca go wraz ze składnikami. Pole name jest wymagane; category, recipe i ingredients są opcjonalne. Każdy składnik wymaga ingredient_id istniejącego w bazie; amount i unit są opcjonalne.
+   * @description Wymaga tokena Bearer (user lub admin). Tworzy koktajl należący do zalogowanego użytkownika i zwraca go ze składnikami. userId pochodzi wyłącznie z tokena; nie przesyłaj autora w body. Pole name jest wymagane; category, recipe i ingredients są opcjonalne. Każdy składnik wymaga ingredient_id istniejącego w bazie; amount i unit są opcjonalne. alcohol jest wyliczane, a rating pochodzi z ocen komentarzy.
    * @requestBody <addCocktailValidator>
    * @responseBody 201 - <Cocktail>.with(ingredients) - Koktajl został pomyślnie utworzony
+   * @responseBody 401 - Brak poprawnego tokena Bearer
    * @responseBody 422 - Nieprawidłowe dane koktajlu lub nieistniejące ID składnika
    */
   async addCocktail({ request, response, auth }: HttpContext) {
@@ -97,9 +98,11 @@ export default class CocktailsController {
   /**
    * @deleteCocktail
    * @summary Usuń koktajl
-   * @description Usuwa koktajl o podanym ID z bazy danych.
+   * @description Wymaga tokena Bearer właściciela koktajlu lub administratora. Usuwa koktajl, jego komentarze i powiązania ze składnikami; pozostawia katalog składników. Nie wymaga body.
    * @paramPath id - ID koktajlu do usunięcia, dodatnia liczba całkowita - @type(integer) @required @example(1)
    * @responseBody 200 - <cocktailIdValidator> - ID usuniętego koktajlu
+   * @responseBody 401 - Brak poprawnego tokena Bearer
+   * @responseBody 403 - Użytkownik nie jest właścicielem koktajlu ani administratorem
    * @responseBody 404 - Nie znaleziono koktajlu o podanym ID
    * @responseBody 422 - Nieprawidłowe ID koktajlu
    */
@@ -129,10 +132,12 @@ export default class CocktailsController {
   /**
    * @updateCocktail
    * @summary Aktualizuj koktajl
-   * @description Aktualizuje wyłącznie przesłane pola koktajlu. Przesłanie ingredients zastępuje listę przypisanych składników; pusta tablica usuwa wszystkie powiązania, a pominięcie pola pozostawia je bez zmian. Każdy składnik wymaga ingredient_id istniejącego w bazie; amount i unit są opcjonalne.
+   * @description Wymaga tokena Bearer właściciela koktajlu lub administratora. Aktualizuje wyłącznie przesłane pola; nie zmienia autora ani katalogu składników. Przesłanie ingredients zastępuje listę przypisanych składników; pusta tablica usuwa wszystkie powiązania, a pominięcie pola pozostawia je bez zmian. Każdy składnik wymaga ingredient_id istniejącego w bazie; amount i unit są opcjonalne. alcohol jest ponownie wyliczane ze składników; rating zmienia się przez dodawanie i usuwanie ocen komentarzy.
    * @paramPath id - ID koktajlu do aktualizacji, dodatnia liczba całkowita - @type(integer) @required @example(1)
    * @requestBody <updateCocktailValidator>
    * @responseBody 200 - <Cocktail>.with(ingredients) - Zaktualizowany koktajl
+   * @responseBody 401 - Brak poprawnego tokena Bearer
+   * @responseBody 403 - Użytkownik nie jest właścicielem koktajlu ani administratorem
    * @responseBody 404 - Nie znaleziono koktajlu o podanym ID
    * @responseBody 422 - Nieprawidłowe ID koktajlu, dane aktualizacji lub nieistniejące ID składnika
    */

@@ -18,11 +18,17 @@ export default class CocktailsService {
     if (filters.category !== undefined) {
       query.where('category', filters.category)
     }
-    if (filters.alcohol !== undefined) {
+
+    if (filters.alcohol === true) {
       query.whereHas('ingredients', (ingredientQuery) => {
-        ingredientQuery.where('alcohol', filters.alcohol!)
+        ingredientQuery.where('alcohol', true)
+      })
+    } else if (filters.alcohol === false) {
+      query.whereDoesntHave('ingredients', (ingredientQuery) => {
+        ingredientQuery.where('alcohol', true)
       })
     }
+
     query.preload('ingredients', (ingredientQuery) => {
       ingredientQuery.pivotColumns(['amount', 'unit'])
     })

@@ -7,6 +7,7 @@ Aplikacja umożliwia tworzenie, przeglądanie, aktualizowanie i usuwanie
 koktajli oraz składników. Obsługuje przypisywanie składników do koktajli
 wraz z ilością i jednostką, a także paginację, filtrowanie i sortowanie list.
 Uwierzytelnianie korzysta z tokenów Bearer, a uprawnienia z ról `user` i `admin`.
+Zalogowani użytkownicy tworzą własne przepisy, komentują je i wystawiają oceny.
 
 ## Technologie
 
@@ -90,8 +91,10 @@ Po uruchomieniu aplikacji:
 3. Skopiuj wartość `token.value` z odpowiedzi.
 4. Kliknij **Authorize**, w polu **BearerAuth** wklej **sam token, bez `Bearer`**,
    i zatwierdź. Swagger doda nagłówek `Authorization: Bearer <token>`.
-5. Wywołaj `GET /auth/me`, a następnie `GET /ingredients` lub `GET /cocktails`.
-   W nowej bazie listy będą puste.
+5. Wywołaj `GET /auth/me`, aby poznać swoje `user.id`. Możesz teraz utworzyć
+   koktajl przez `POST /cocktails` i dodać ocenę przez `POST /cocktails/{cocktailId}/comment`.
+   Listy koktajli, składników i komentarzy są dostępne również bez logowania;
+   w nowej bazie będą puste.
 
 Przykłady w Swaggerze opisują format danych; nie tworzą kont ani rekordów w bazie.
 ID w przykładach koktajli zastąp ID istniejących składników z `GET /ingredients`.
@@ -171,28 +174,125 @@ wysyłając token administratora i body `{"role":"admin"}` lub `{"role":"user"}`
 ID pochodzi ze ścieżki — nie dodawaj `params` do JSON-a.
 Administrator nie może zmienić własnej roli przez ten endpoint.
 
+### Właściciele wpisów
+
+- `POST /cocktails` przypisuje koktajl do użytkownika z tokena. Odpowiedź zawiera
+  `userId` właściciela; porównaj je z `user.id` z `GET /auth/me`.
+- Koktajl może edytować i usuwać jego właściciel lub administrator.
+  Edycja nie przenosi własności i nie zmienia katalogu składników.
+- Komentarz należy do użytkownika, który go dodał, niezależnie od autora koktajlu.
+  `userId` komentarza identyfikuje autora, a `cocktailId` oceniany przepis.
+- Komentarz może usunąć jego autor lub administrator. Właściciel koktajlu
+  nie może usuwać cudzych komentarzy bez roli `admin`.
+- Nie przesyłaj `userId`, `user_id`, `cocktailId`, `cocktail_id` ani `params`
+  jako sposobu ustalania autora lub przepisu. Autor pochodzi z tokena,
+  a oceniany koktajl z adresu. Body zawiera wyłącznie edytowalne pola wpisu.
+- Publiczne odpowiedzi zawierają ID autorów, ale nie ich emaile, hasła ani tokeny.
+
 ## Endpointy
 
-| Metoda | Ścieżka            | Działanie                              | Dostęp          |
-| ------ | ------------------ | -------------------------------------- | --------------- |
-| POST   | `/auth/register`   | Rejestracja (`201`)                    | Publiczny       |
-| POST   | `/auth/login`      | Logowanie (`200`)                      | Publiczny       |
-| GET    | `/auth/me`         | Dane zalogowanego użytkownika          | `user`, `admin` |
-| POST   | `/auth/logout`     | Unieważnienie bieżącego tokena (`204`) | `user`, `admin` |
-| GET    | `/ingredients`     | Lista składników                       | `user`, `admin` |
-| GET    | `/ingredients/:id` | Szczegóły składnika                    | `user`, `admin` |
-| POST   | `/ingredients`     | Utworzenie składnika                   | `admin`         |
-| PATCH  | `/ingredients/:id` | Aktualizacja składnika                 | `admin`         |
-| DELETE | `/ingredients/:id` | Usunięcie składnika                    | `admin`         |
-| GET    | `/cocktails`       | Lista koktajli                         | `user`, `admin` |
-| GET    | `/cocktails/:id`   | Szczegóły koktajlu                     | `user`, `admin` |
-| POST   | `/cocktails`       | Utworzenie koktajlu                    | `admin`         |
-| PATCH  | `/cocktails/:id`   | Aktualizacja koktajlu                  | `admin`         |
-| DELETE | `/cocktails/:id`   | Usunięcie koktajlu                     | `admin`         |
-| PATCH  | `/users/:id/role`  | Zmiana roli innego użytkownika         | `admin`         |
+| Metoda | Ścieżka                               | Działanie                              | Dostęp                       |
+| ------ | ------------------------------------- | -------------------------------------- | ---------------------------- |
+| POST   | `/auth/register`                      | Rejestracja (`201`)                    | Publiczny                    |
+| POST   | `/auth/login`                         | Logowanie (`200`)                      | Publiczny                    |
+| GET    | `/auth/me`                            | Dane zalogowanego użytkownika          | `user`, `admin`              |
+| POST   | `/auth/logout`                        | Unieważnienie bieżącego tokena (`204`) | `user`, `admin`              |
+| GET    | `/ingredients`                        | Lista składników                       | Publiczny                    |
+| GET    | `/ingredients/:id`                    | Szczegóły składnika                    | Publiczny                    |
+| POST   | `/ingredients`                        | Utworzenie składnika                   | `admin`                      |
+| PATCH  | `/ingredients/:id`                    | Aktualizacja składnika                 | `admin`                      |
+| DELETE | `/ingredients/:id`                    | Usunięcie składnika                    | `admin`                      |
+| GET    | `/cocktails`                          | Lista koktajli                         | Publiczny                    |
+| GET    | `/cocktails/:id`                      | Szczegóły koktajlu                     | Publiczny                    |
+| POST   | `/cocktails`                          | Utworzenie własnego koktajlu (`201`)   | `user`, `admin`              |
+| PATCH  | `/cocktails/:id`                      | Aktualizacja koktajlu                  | Właściciel lub `admin`       |
+| DELETE | `/cocktails/:id`                      | Usunięcie koktajlu                     | Właściciel lub `admin`       |
+| POST   | `/cocktails/:cocktailId/comment`      | Dodanie komentarza i oceny (`201`)     | `user`, `admin`              |
+| GET    | `/cocktails/:cocktailId/comments`     | Lista komentarzy koktajlu              | Publiczny                    |
+| GET    | `/cocktails/:cocktailId/comments/:id` | Szczegóły komentarza                   | Publiczny                    |
+| DELETE | `/cocktails/:cocktailId/comments/:id` | Usunięcie komentarza i oceny           | Autor komentarza lub `admin` |
+| PATCH  | `/users/:id/role`                     | Zmiana roli innego użytkownika         | `admin`                      |
 
 Dokumentacja `/docs` i `/swagger` jest publiczna. Każdy endpoint oznaczony rolą
 wymaga poprawnego tokena Bearer.
+
+## Komentarze i oceny
+
+Dodawanie używa ścieżki **`/comment` (liczba pojedyncza)**, a odczyt i usuwanie
+ścieżki **`/comments`**. API nie udostępnia aktualizacji komentarza.
+
+Body dodawania komentarza:
+
+```json
+{
+  "rating": 5,
+  "content": "Bardzo dobry przepis."
+}
+```
+
+- `rating` jest wymagane: liczba całkowita JSON od 1 do 5, np. `5`, a nie `"5"`.
+- `content` jest opcjonalne i może mieć wartość `null`. Tekst jest przycinany
+  i musi mieć od 1 do 500 znaków; same białe znaki są odrzucane.
+- Można wystawić samą ocenę, wysyłając `{"rating":5}`.
+- Ten sam użytkownik może dodać wiele ocen jednego koktajlu oraz oceniać własny przepis.
+  Każdy komentarz wnosi osobną ocenę do średniej.
+- Dodanie lub usunięcie komentarza przelicza `rating` koktajlu jako średnią
+  wszystkich jego ocen. Brak ocen oznacza `rating: null`.
+- Usunięcie koktajlu usuwa także jego komentarze i powiązania ze składnikami,
+  pozostawiając same składniki w katalogu.
+
+Przykład (zastąp `1` ID istniejącego koktajlu, a `TOKEN` wynikiem logowania):
+
+```bash
+curl -X POST http://localhost:3333/cocktails/1/comment \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"rating":5,"content":"Bardzo dobry przepis."}'
+```
+
+Odpowiedź `201`:
+
+```json
+{
+  "id": 1,
+  "cocktailId": 1,
+  "userId": 2,
+  "rating": 5,
+  "content": "Bardzo dobry przepis.",
+  "createdAt": "2026-10-29T12:00:00.000+00:00",
+  "updatedAt": "2026-10-29T12:00:00.000+00:00"
+}
+```
+
+### Lista i usuwanie komentarzy
+
+`GET /cocktails/1/comments?page=1&limit=10&sortBy=id&sortOrder=desc`
+zwraca obiekt `{ "data": [...], "meta": {...} }`:
+
+- `page`: dodatnia liczba całkowita, domyślnie `1`;
+- `limit`: liczba całkowita od `1` do `100`, domyślnie `10`;
+- `sortBy`: `id`, `rating`, `createdAt` lub `updatedAt`, domyślnie `id`;
+- `sortOrder`: `asc` lub `desc`, domyślnie `desc`.
+
+Remisy rozstrzyga `id` w tym samym kierunku. Linki w `meta` zachowują parametry
+listy. Istniejący koktajl bez komentarzy zwraca pustą listę i `total: 0`;
+nieistniejący koktajl zwraca `404`.
+
+`DELETE /cocktails/1/comments/1` wymaga tokena autora komentarza lub administratora,
+nie wymaga body i zwraca `200` z `{"id":1}`. Komentarz nieprzypisany do koktajlu
+ze ścieżki zwraca `404`.
+
+**Aktualne zachowanie szczegółów komentarza:**
+`GET /cocktails/:cocktailId/comments/:id` wyszukuje tylko po `id` komentarza.
+Nie waliduje `cocktailId` ani nie sprawdza jego zgodności z komentarzem.
+Lista komentarzy oraz operacja usuwania sprawdzają przypisanie do koktajlu.
+
+### Alkoholowość koktajlu
+
+Pole `alcohol` jest wyliczane ze składników. Koktajl jest alkoholowy, jeśli
+choć jeden składnik ma `alcohol: true`. Filtr `/cocktails?alcohol=false` wybiera
+koktajle bez alkoholowych składników, również koktajle bez składników.
 
 ### Kody błędów
 
@@ -202,12 +302,14 @@ Wysyłaj `Accept: application/json`, aby otrzymywać odpowiedzi JSON.
 | ------ | ----------------------------------------------------------------------------------------- |
 | `400`  | Nieprawidłowy email lub hasło podczas logowania                                           |
 | `401`  | Brak tokena lub token nieprawidłowy, wygasły albo unieważniony                            |
-| `403`  | Brak wymaganej roli lub próba zmiany własnej roli                                         |
+| `403`  | Brak wymaganej roli, próba zmiany cudzego wpisu bez uprawnień lub zmiany własnej roli     |
 | `404`  | Nie znaleziono zasobu                                                                     |
 | `409`  | Próba usunięcia składnika używanego w koktajlu                                            |
 | `422`  | Błąd walidacji danych, np. zajęty email, niezgodne potwierdzenie hasła lub niepoprawne ID |
 
 Błędy walidacji zawierają tablicę `errors` z polami `field`, `rule` i `message`.
+W komentarzach błędne parametry ścieżki mają nazwy `params.cocktailId` i `params.id`
+(dodawanie, lista, usuwanie); szczegóły komentarza walidują tylko pole `id`.
 Odmowa dostępu przez middleware roli zawiera `message`.
 Format pozostałych błędów diagnostycznych może różnić się między trybem
 development i production.
@@ -228,10 +330,13 @@ dlatego nie wskazuj bazy z danymi do ręcznego sprawdzania API.
 ## Struktura i decyzje projektowe
 
 - Kontrolery odpowiadają za obsługę HTTP i wywołanie walidacji.
-- Serwisy zawierają logikę operacji na koktajlach i składnikach.
+- Serwisy zawierają logikę operacji na koktajlach, składnikach i komentarzach.
 - Modele Lucid opisują dane i relacje.
 - Migracje pozwalają odtworzyć strukturę bazy.
 - Relacja koktajli ze składnikami przechowuje dodatkowo ilość i jednostkę.
 - Middleware `auth` weryfikuje token, a middleware `role` uprawnienia administratora.
+- Kontroler koktajli sprawdza właściciela przy edycji i usuwaniu; serwis komentarzy
+  sprawdza autora przy usuwaniu i przelicza średnią ocen w transakcji.
 - Kontrakty OpenAPI pochodzą z adnotacji kontrolerów i walidatorów;
-  `config/openapi.ts` i `config/openapi_auth.ts` uzupełniają ograniczenia generatora.
+  `config/openapi.ts`, `config/openapi_auth.ts` i `config/openapi_comments.ts`
+  uzupełniają ograniczenia generatora, schematy odpowiedzi i zasady dostępu.

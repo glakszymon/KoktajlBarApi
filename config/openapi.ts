@@ -5,6 +5,7 @@ import {
   schemaExamples,
 } from './openapi_examples.js'
 import { documentAuth } from './openapi_auth.js'
+import { documentComments } from './openapi_comments.js'
 
 export type Schema = {
   $ref?: string
@@ -196,6 +197,30 @@ export function normalizeOpenApi<T extends OpenApiDocument>(document: T): T {
       },
     })
   }
+  if (schemas.Cocktail?.properties) {
+    Object.assign(schemas.Cocktail.properties, {
+      userId: {
+        type: 'integer',
+        minimum: 1,
+        description:
+          'ID właściciela koktajlu. Ustalane z tokena przy tworzeniu; nie można zmienić przez PATCH.',
+      },
+      rating: {
+        type: 'number',
+        nullable: true,
+        minimum: 1,
+        maximum: 5,
+        description: 'Średnia ocen wszystkich komentarzy; null przy braku ocen.',
+      },
+      alcohol: {
+        type: 'boolean',
+        description:
+          'true, gdy co najmniej jeden składnik jest alkoholowy; false również przy braku składników.',
+      },
+    })
+    // Lucid serializes these attributes in camelCase despite snakeCase parser settings.
+    delete schemas.Cocktail.properties.user_id
+  }
   const pagination = schemas.paginationValidator?.properties
   for (const name of ['page', 'limit']) {
     if (pagination?.[name]) {
@@ -384,6 +409,20 @@ export function normalizeOpenApi<T extends OpenApiDocument>(document: T): T {
         operation.responses = responses
       }
       for (const response of Object.values(responses)) normalizeContent(response.content)
+      // AutoSwagger copies model properties before normalization; use the completed schema
+      // so response contracts include the owner and computed fields as well.
+      if (path === '/cocktails' || path === '/cocktails/{id}') {
+        const status = method === 'post' ? '201' : '200'
+        const media = responses[status]?.content?.['application/json']
+        if (media && method !== 'delete') {
+          if (path === '/cocktails' && method === 'get') {
+            const data = media.schema?.properties?.data
+            if (data) data.items = { $ref: '#/components/schemas/Cocktail' }
+          } else {
+            media.schema = { $ref: '#/components/schemas/Cocktail' }
+          }
+        }
+      }
       if (examplesForOperation) {
         for (const [status, response] of Object.entries(responses)) {
           const media = response.content?.['application/json']
@@ -399,5 +438,6 @@ export function normalizeOpenApi<T extends OpenApiDocument>(document: T): T {
   if (responses?.NotAcceptable)
     responses.NotAcceptable.description = 'No acceptable representation is available'
   documentAuth(document)
+  documentComments(document)
   return document
 }

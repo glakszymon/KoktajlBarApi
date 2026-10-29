@@ -146,13 +146,13 @@ test.group('Cocktails | odczyt', (group) => {
       )
     })
 
-  test('filtruje po składniku alkoholowym lub bezalkoholowym: {alcohol}')
+  test('filtruje po alkoholowości całego koktajlu: {alcohol}')
     .with([{ alcohol: true }, { alcohol: false }])
     .run(async ({ client, assert }, { alcohol }) => {
       const alcoholic = await IngredientFactory.merge({ alcohol: true }).create()
       const nonAlcoholic = await IngredientFactory.merge({ alcohol: false }).create()
 
-      const [strong, virgin, mixed] = await Cocktail.createMany([
+      const [strong, virgin, mixed, empty] = await Cocktail.createMany([
         { name: 'Strong', userId: user.id },
         { name: 'Virgin', userId: user.id },
         { name: 'Mixed', userId: user.id },
@@ -167,11 +167,23 @@ test.group('Cocktails | odczyt', (group) => {
 
       response.assertStatus(200)
 
-      // Filtr oznacza istnienie składnika danego typu, więc mieszany koktajl pasuje do obu wartości.
+      // Wystarczy jeden alkoholowy składnik; brak składników oznacza alcohol=false.
       assert.deepEqual(
         readPage(response).data.map((item) => item.id),
-        [alcohol ? strong.id : virgin.id, mixed.id]
+        alcohol ? [strong.id, mixed.id] : [virgin.id, empty.id]
       )
+      response.assertBodyContains({
+        meta: { total: 2 },
+        data: alcohol
+          ? [
+              { id: strong.id, alcohol: true },
+              { id: mixed.id, alcohol: true },
+            ]
+          : [
+              { id: virgin.id, alcohol: false },
+              { id: empty.id, alcohol: false },
+            ],
+      })
     })
 
   test('łączy kategorię, filtr, sortowanie i limit oraz zachowuje je w linkach', async ({

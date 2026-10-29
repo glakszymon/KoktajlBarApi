@@ -14,7 +14,10 @@ export default {
       'API z przepisami na koktajle — projekt rekrutacyjny do SOLVRO. ' +
       'Zarejestruj konto przez POST /auth/register, a następnie zaloguj się przez POST /auth/login. ' +
       'Skopiuj token.value i wklej sam token (bez prefiksu Bearer) w Authorize → BearerAuth. ' +
-      'Token jest ważny 24 godziny. Odczyt wymaga zalogowania; zapis i zmiana ról wymagają roli admin. ' +
+      'Token jest ważny 24 godziny. Odczyt koktajli, składników i komentarzy jest publiczny. ' +
+      'Zalogowany użytkownik tworzy koktajle i komentarze jako ich autor. ' +
+      'Koktajl edytuje lub usuwa jego właściciel albo admin; komentarz usuwa jego autor albo admin. ' +
+      'Zapis składników i zmiana ról wymagają roli admin. ' +
       'Rejestracja tworzy konto z rolą user. Przykładowe dane w dokumentacji nie są automatycznie tworzone w bazie.',
   },
   snakeCase: true,

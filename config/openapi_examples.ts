@@ -90,6 +90,9 @@ export const updateCocktailExample = {
 }
 export const cocktailExample = {
   id: 1,
+  userId: 1,
+  rating: null,
+  alcohol: true,
   ...addCocktailExample,
   ...timestamps,
   ingredients: ingredientExamples.map((ingredient, index) => ({
@@ -137,8 +140,10 @@ export const schemaExamples: Record<string, unknown> = {
 }
 
 export const operationExamples: Record<string, { request?: unknown; response: unknown }> = {
-  'GET /cocktails': { response: { data: [cocktailExample], meta: paginationMetaExample(1) } },
-  'GET /cocktails/{id}': { response: cocktailExample },
+  'GET /cocktails': {
+    response: { data: [{ ...cocktailExample, comments: [] }], meta: paginationMetaExample(1) },
+  },
+  'GET /cocktails/{id}': { response: { ...cocktailExample, comments: [] } },
   'POST /cocktails': { request: addCocktailExample, response: cocktailExample },
   'PATCH /cocktails/{id}': {
     request: updateCocktailExample,

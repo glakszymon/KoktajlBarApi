@@ -1,5 +1,5 @@
 import { CocktailSchema } from '#database/schema'
-import { belongsTo, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
+import { belongsTo, column, computed, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Ingredient from '#models/ingredient'
@@ -36,6 +36,11 @@ export default class Cocktail extends CocktailSchema {
 
   @hasMany(() => Comment)
   declare comments: HasMany<typeof Comment>
+
+  @computed()
+  get alcohol(): boolean {
+    return this.ingredients.some((ingredient) => ingredient.alcohol)
+  }
 
   @manyToMany(() => Ingredient, {
     pivotTable: 'cocktail_ingredients',
