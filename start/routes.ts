@@ -11,9 +11,7 @@ const UserRolesController = () => import('#controllers/user_roles_controller')
 const CocktailsController = () => import('#controllers/cocktails_controller')
 const IngredientsController = () => import('#controllers/ingredients_controller')
 
-router.get('/', async () => {
-  return { hello: 'world' }
-})
+router.on('/').redirectToPath('/docs')
 
 // INGREDIENTS
 router

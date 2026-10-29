@@ -79,13 +79,6 @@ Powyższe hasła są przeznaczone wyłącznie do lokalnego demo.
 Seeder jest dostępny w środowiskach `development` i `test`.
 
 
-```bash
-TOKEN='TOKEN_Z_ODPOWIEDZI_LOGOWANIA'
-curl http://localhost:3333/auth/me \
-  -H 'Accept: application/json' \
-  -H "Authorization: Bearer $TOKEN"
-```
-
 ## Uprawnienia
 
 | Operacja                                                | Dostęp                             |
