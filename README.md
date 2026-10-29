@@ -27,7 +27,7 @@ Japa · ESLint · Prettier
 
 ## Uruchomienie lokalne
 
-### 1. Pobierz projekt i zainstaluj zależności
+### 1. Pobranie projektu i instalacja zależności
 
 ```bash
 git clone https://github.com/glakszymon/KoktajlBarApi.git
@@ -36,10 +36,11 @@ npm ci
 cp .env.example .env
 ```
 
-### 2. Skonfiguruj bazę danych
+### 2. Konfiguracja bazy danych
 
-Utwórz pustą bazę MariaDB i użytkownika z uprawnieniami do migracji oraz operacji
-na danych. Ustaw parametry połączenia w `.env`:
+Do uruchomienia aplikacji potrzebna jest pusta baza MariaDB oraz użytkownik
+z uprawnieniami do migracji i operacji na danych. Parametry połączenia znajdują
+się w `.env`. Przykładowa konfiguracja:
 
 ```dotenv
 DB_HOST=127.0.0.1
@@ -49,7 +50,7 @@ DB_PASSWORD=local_example_password
 DB_DATABASE=koktajl_bar
 ```
 
-### 3. Przygotuj dane i uruchom aplikację
+### 3. Przygotowanie danych i uruchomienie aplikacji
 
 ```bash
 node ace generate:key
@@ -79,11 +80,13 @@ Seeder jest dostępny w środowiskach `development` i `test`.
 
 ### Sprawdzenie API w Swagger UI
 
-1. Otwórz http://localhost:3333/docs.
-2. Wykonaj `POST /auth/login`, używając jednego z kont demonstracyjnych.
-3. Skopiuj `token.value` z odpowiedzi.
-4. Kliknij **Authorize** i w polu **BearerAuth** wklej sam token, bez prefiksu `Bearer`.
-5. Sprawdź `GET /auth/me` oraz operacje tworzenia, edycji i usuwania wpisów.
+Swagger UI jest dostępny pod adresem http://localhost:3333/docs.
+Logowanie przez `POST /auth/login` z danymi konta demonstracyjnego zwraca token
+w polu `token.value`. Autoryzacja w Swagger UI odbywa się przez **Authorize**
+→ **BearerAuth**; pole przyjmuje sam token, bez prefiksu `Bearer`.
+
+Po autoryzacji dostępne są `GET /auth/me` oraz operacje tworzenia, edycji
+i usuwania wpisów zgodnie z uprawnieniami konta.
 
 Listy i szczegóły koktajli, składników oraz komentarzy są dostępne bez logowania.
 
@@ -105,7 +108,8 @@ curl -X POST http://localhost:3333/auth/login \
   -d '{"email":"user@example.com","password":"Demo-password-12345!"}'
 ```
 
-Do chronionych endpointów przekaż otrzymaną wartość `token.value`:
+Chronione endpointy wymagają wartości `token.value` w nagłówku
+`Authorization: Bearer <token>`:
 
 ```bash
 TOKEN='TOKEN_Z_ODPOWIEDZI_LOGOWANIA'
@@ -151,8 +155,8 @@ Pełne kontrakty endpointów, parametry i przykładowe odpowiedzi znajdują się
 Testy integracyjne obejmują uwierzytelnianie, uprawnienia, operacje na koktajlach
 i składnikach, filtrowanie, paginację, komentarze, średnie ocen oraz seeder.
 
-Przygotuj **osobną, pustą bazę testową** i ustaw jej parametry w `.env.test`.
-Testy wykonują migracje oraz tworzą i usuwają dane.
+Testy wymagają **osobnej, pustej bazy testowej**, której parametry są określone
+w `.env.test`. Podczas uruchomienia wykonują migracje oraz tworzą i usuwają dane.
 
 ```bash
 npm test
