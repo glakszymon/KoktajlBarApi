@@ -28,9 +28,9 @@ const bodyParserConfig = defineConfig({
    */
   json: {
     /**
-     * Normalize empty string values to null.
+     * Preserve empty strings so validators can reject blank text while allowing explicit null.
      */
-    convertEmptyStringsToNull: true,
+    convertEmptyStringsToNull: false,
 
     /**
      * Content types handled by the JSON parser.

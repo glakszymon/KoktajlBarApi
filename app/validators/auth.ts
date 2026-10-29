@@ -15,6 +15,6 @@ export const registerValidator = vine.compile(
 export const loginValidator = vine.compile(
   vine.object({
     email: vine.string().trim().toLowerCase().email().maxLength(254),
-    password: vine.string(),
+    password: vine.string().minLength(1),
   })
 )

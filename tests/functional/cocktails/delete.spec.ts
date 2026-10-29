@@ -117,7 +117,7 @@ test.group('Cocktails | usuwanie', (group) => {
 
     await cocktail.related('ingredients').attach({ [ingredient.id]: { amount: 50, unit: 'ml' } })
     await cocktail.refresh()
-    const original = cocktail.serialize()
+    const original = cocktail.serializeAttributes()
 
     const anonymous = await client.delete(`/cocktails/${cocktail.id}`)
     anonymous.assertStatus(401)
@@ -131,7 +131,7 @@ test.group('Cocktails | usuwanie', (group) => {
 
     await cocktail.refresh()
 
-    assert.deepEqual(cocktail.serialize(), original)
+    assert.deepEqual(cocktail.serializeAttributes(), original)
     await cocktail.load('ingredients')
     assert.lengthOf(cocktail.ingredients, 1)
     assert.equal(cocktail.ingredients[0].id, ingredient.id)

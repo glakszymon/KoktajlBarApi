@@ -170,7 +170,7 @@ test.group('Cocktails | aktualizacja', (group) => {
       const cocktail = await Cocktail.create({ name: 'Mojito', userId: owner.id })
 
       await cocktail.refresh()
-      const original = cocktail.serialize()
+      const original = cocktail.serializeAttributes()
 
       const response = await client
         .patch(`/cocktails/${cocktail.id}`)
@@ -182,7 +182,7 @@ test.group('Cocktails | aktualizacja', (group) => {
       response.assertBodyContains({ errors: [{ field }] })
 
       await cocktail.refresh()
-      assert.deepEqual(cocktail.serialize(), original)
+      assert.deepEqual(cocktail.serializeAttributes(), original)
     })
 
   test('odrzuca błędne dane relacji bez zmiany pól i istniejących powiązań: {label}')
@@ -276,7 +276,7 @@ test.group('Cocktails | aktualizacja', (group) => {
     const ingredient = await IngredientFactory.create()
     await cocktail.related('ingredients').attach({ [ingredient.id]: { amount: 50, unit: 'ml' } })
     await cocktail.refresh()
-    const original = cocktail.serialize()
+    const original = cocktail.serializeAttributes()
 
     const anonymous = await client
       .patch(`/cocktails/${cocktail.id}`)
@@ -294,7 +294,7 @@ test.group('Cocktails | aktualizacja', (group) => {
 
     await cocktail.refresh()
 
-    assert.deepEqual(cocktail.serialize(), original)
+    assert.deepEqual(cocktail.serializeAttributes(), original)
     await cocktail.load('ingredients')
     assert.lengthOf(cocktail.ingredients, 1)
     assert.equal(cocktail.ingredients[0].id, ingredient.id)

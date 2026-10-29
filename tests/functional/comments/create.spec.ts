@@ -145,6 +145,7 @@ test.group('Comments | dodawanie przez API', (group) => {
         field: 'content',
       },
       { label: 'same spacje', payload: { rating: 4, content: '   ' }, field: 'content' },
+      { label: 'pusta treść', payload: { rating: 4, content: '' }, field: 'content' },
       { label: 'treść jako liczba', payload: { rating: 4, content: 123 }, field: 'content' },
       { label: 'treść jako obiekt', payload: { rating: 4, content: {} }, field: 'content' },
     ])
