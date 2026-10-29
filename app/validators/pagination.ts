@@ -20,3 +20,12 @@ export const paginationIngredientValidator = vine.compile(
     sortOrder: vine.enum(['asc', 'desc']).optional(),
   })
 )
+
+// export const paginationCommentValidator = vine.compile(
+//   vine.object({
+//     page: vine.number().withoutDecimals().positive().optional(),
+//     limit: vine.number().withoutDecimals().positive().max(10).optional(),
+//     sortBy: vine.enum(['id', 'rating', 'created', 'updated']).optional(),
+//     sortOrder: vine.enum(['asc', 'desc']).optional(),
+//   })
+// )

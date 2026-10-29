@@ -42,4 +42,51 @@ export default class CommentsService {
       return comment
     })
   }
+
+  public async getById(id: number) {
+    return Comment.findOrFail(id)
+  }
+
+  public async getAll(
+    cocktailId: number,
+    filters: {
+      page?: number
+      limit?: number
+      sortBy?: 'id' | 'rating' | 'createdAt' | 'updatedAt'
+      sortOrder?: 'asc' | 'desc'
+    }
+  ) {
+    await Cocktail.findOrFail(cocktailId)
+
+    const page = filters.page ?? 1
+    const limit = filters.limit ?? 10
+    const sortBy = filters.sortBy ?? 'id'
+    const sortOrder = filters.sortOrder ?? 'desc'
+
+    const sortColumns = {
+      id: 'id',
+      rating: 'rating',
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+    } as const
+
+    const query = Comment.query()
+      .where('cocktail_id', cocktailId)
+      .orderBy(sortColumns[sortBy], sortOrder)
+
+    if (sortBy !== 'id') {
+      query.orderBy('id', sortOrder)
+    }
+
+    const result = await query.paginate(page, limit)
+
+    result.baseUrl(`/cocktails/${cocktailId}/comments`)
+    result.queryString({
+      limit,
+      sortBy,
+      sortOrder,
+    })
+
+    return result
+  }
 }

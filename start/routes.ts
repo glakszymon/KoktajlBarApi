@@ -5,7 +5,7 @@ import { normalizeOpenApi } from '#config/openapi'
 import AutoSwagger from 'adonis-autoswagger'
 const AuthController = () => import('#controllers/auth_controller')
 import { middleware } from '#start/kernel'
-import CommentsController from '#controllers/comments_controller'
+const CommentsController = () => import('#controllers/comments_controller')
 const UserRolesController = () => import('#controllers/user_roles_controller')
 
 const CocktailsController = () => import('#controllers/cocktails_controller')
@@ -41,19 +41,20 @@ router
     router.get('/', [CocktailsController, 'readAllCocktails'])
     router.get('/:id', [CocktailsController, 'getCocktailsById'])
     router.post('/', [CocktailsController, 'addCocktail']).use(middleware.auth({ guards: ['api'] }))
-    // .use(middleware.role({ roles: ['admin'] }))
     router
       .delete('/:id', [CocktailsController, 'deleteCocktail'])
       .use(middleware.auth({ guards: ['api'] }))
-    // .use(middleware.role({ roles: ['admin'] }))
     router
       .patch('/:id', [CocktailsController, 'updateCocktail'])
       .use(middleware.auth({ guards: ['api'] }))
-    // .use(middleware.role({ roles: ['admin'] }))
 
+    //   komentarze
     router
       .post('/:cocktailId/comment', [CommentsController, 'addComment'])
       .use(middleware.auth({ guards: ['api'] }))
+
+    router.get('/:cocktailId/comments', [CommentsController, 'getAllCommentsAboutCocktail'])
+    router.get('/:cocktailId/comments/:id', [CommentsController, 'getCommentById'])
   })
   .prefix('/cocktails')
 

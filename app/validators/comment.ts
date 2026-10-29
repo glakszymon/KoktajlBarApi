@@ -21,6 +21,10 @@ export const listCommentsValidator = vine.compile(
     page: vine.number().positive().withoutDecimals().optional(),
 
     limit: vine.number().positive().withoutDecimals().max(100).optional(),
+
+    sortBy: vine.enum(['id', 'rating', 'createdAt', 'updatedAt']).optional(),
+
+    sortOrder: vine.enum(['asc', 'desc']).optional(),
   })
 )
 
@@ -31,6 +35,12 @@ export const showCommentValidator = vine.compile(
 
       id: vine.number().positive().withoutDecimals(),
     }),
+  })
+)
+
+export const commentIdValidator = vine.compile(
+  vine.object({
+    id: vine.number().positive().withoutDecimals(),
   })
 )
 
