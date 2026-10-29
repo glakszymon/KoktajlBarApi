@@ -66,6 +66,12 @@ const routes = {
     tokens: [{"old":"/cocktails/:id","type":0,"val":"cocktails","end":""},{"old":"/cocktails/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['cocktails.update_cocktail']['types'],
   },
+  'comments.add_comment': {
+    methods: ["POST"],
+    pattern: '/cocktails/:cocktailId/comment',
+    tokens: [{"old":"/cocktails/:cocktailId/comment","type":0,"val":"cocktails","end":""},{"old":"/cocktails/:cocktailId/comment","type":1,"val":"cocktailId","end":""},{"old":"/cocktails/:cocktailId/comment","type":0,"val":"comment","end":""}],
+    types: placeholder as Registry['comments.add_comment']['types'],
+  },
   'auth.register': {
     methods: ["POST"],
     pattern: '/auth/register',

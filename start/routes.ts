@@ -5,6 +5,7 @@ import { normalizeOpenApi } from '#config/openapi'
 import AutoSwagger from 'adonis-autoswagger'
 const AuthController = () => import('#controllers/auth_controller')
 import { middleware } from '#start/kernel'
+import CommentsController from '#controllers/comments_controller'
 const UserRolesController = () => import('#controllers/user_roles_controller')
 
 const CocktailsController = () => import('#controllers/cocktails_controller')
@@ -49,6 +50,10 @@ router
       .patch('/:id', [CocktailsController, 'updateCocktail'])
       .use(middleware.auth({ guards: ['api'] }))
     // .use(middleware.role({ roles: ['admin'] }))
+
+    router
+      .post('/:cocktailId/comment', [CommentsController, 'addComment'])
+      .use(middleware.auth({ guards: ['api'] }))
   })
   .prefix('/cocktails')
 

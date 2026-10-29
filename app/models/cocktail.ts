@@ -1,9 +1,10 @@
 import { CocktailSchema } from '#database/schema'
-import { belongsTo, column, manyToMany } from '@adonisjs/lucid/orm'
+import { belongsTo, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
-import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Ingredient from '#models/ingredient'
 import User from '#models/user'
+import Comment from '#models/comment'
 
 export default class Cocktail extends CocktailSchema {
   @column({ isPrimary: true, columnName: 'id' })
@@ -21,6 +22,9 @@ export default class Cocktail extends CocktailSchema {
   @column({ columnName: 'user_id' })
   declare userId: number
 
+  @column({ columnName: 'rating' })
+  declare rating: number | null
+
   @column.dateTime({ columnName: 'created_at', autoCreate: true })
   declare created: DateTime
 
@@ -29,6 +33,9 @@ export default class Cocktail extends CocktailSchema {
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
+
+  @hasMany(() => Comment)
+  declare comments: HasMany<typeof Comment>
 
   @manyToMany(() => Ingredient, {
     pivotTable: 'cocktail_ingredients',

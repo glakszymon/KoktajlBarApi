@@ -127,6 +127,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/cocktails_controller').default['updateCocktail']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'comments.add_comment': {
+    methods: ["POST"]
+    pattern: '/cocktails/:cocktailId/comment'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { cocktailId: ParamValue }
+      query: {}
+      response: unknown
+      errorResponse: unknown
+    }
+  }
   'auth.register': {
     methods: ["POST"]
     pattern: '/auth/register'

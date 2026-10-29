@@ -14,6 +14,7 @@ export type ScannedRoutes = {
     'cocktails.add_cocktail': { paramsTuple?: []; params?: {} }
     'cocktails.delete_cocktail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cocktails.update_cocktail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'comments.add_comment': { paramsTuple: [ParamValue]; params: {'cocktailId': ParamValue} }
     'auth.register': { paramsTuple?: []; params?: {} }
     'auth.login': { paramsTuple?: []; params?: {} }
     'auth.me': { paramsTuple?: []; params?: {} }
@@ -37,6 +38,7 @@ export type ScannedRoutes = {
   POST: {
     'ingredients.add_ingredient': { paramsTuple?: []; params?: {} }
     'cocktails.add_cocktail': { paramsTuple?: []; params?: {} }
+    'comments.add_comment': { paramsTuple: [ParamValue]; params: {'cocktailId': ParamValue} }
     'auth.register': { paramsTuple?: []; params?: {} }
     'auth.login': { paramsTuple?: []; params?: {} }
     'auth.logout': { paramsTuple?: []; params?: {} }

@@ -33,7 +33,7 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class CocktailSchema extends BaseModel {
-  static $columns = ['category', 'createdAt', 'id', 'name', 'recipe', 'updatedAt'] as const
+  static $columns = ['category', 'createdAt', 'id', 'name', 'rating', 'recipe', 'updatedAt', 'userId'] as const
   $columns = CocktailSchema.$columns
   @column()
   declare category: string | null
@@ -44,9 +44,13 @@ export class CocktailSchema extends BaseModel {
   @column()
   declare name: string
   @column()
+  declare rating: number | null
+  @column()
   declare recipe: string | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+  @column()
+  declare userId: number
 }
 
 export class CocktailIngredientSchema extends BaseModel {
@@ -66,6 +70,25 @@ export class CocktailIngredientSchema extends BaseModel {
   declare unit: string | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+}
+
+export class CommentSchema extends BaseModel {
+  static $columns = ['cocktailId', 'content', 'createdAt', 'id', 'rating', 'updatedAt', 'userId'] as const
+  $columns = CommentSchema.$columns
+  @column()
+  declare cocktailId: number
+  @column()
+  declare content: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare rating: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
 }
 
 export class IngredientSchema extends BaseModel {
